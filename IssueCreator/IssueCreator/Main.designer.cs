@@ -435,7 +435,7 @@ namespace IssueCreator
             this.MainMenuStrip = this.menuStrip1;
             this.MinimumSize = new System.Drawing.Size(621, 538);
             this.Name = "frmMain";
-            this.Text = "Issue Creator UI";
+            this.Text = "Issue Creator";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FrmMain_FormClosing);
             this.Load += new System.EventHandler(this.FrmMain_Load);
             this.statusStrip1.ResumeLayout(false);
