@@ -85,7 +85,7 @@ namespace IssueCreator
 
         private async void BtnCreateIssue_Click(object sender, EventArgs e)
         {
-            (string org, string repo) = GetRepoOwner();
+            (string owner, string repo) = GetRepoOwner();
 
             // build up the list of labels to appen
             List<string> selectedLabels = new List<string>();
@@ -97,7 +97,7 @@ namespace IssueCreator
             IssueToCreate issueToCreate = new IssueToCreate()
             {
                 Repository = repo,
-                Organization = org,
+                Organization = owner,
                 AssignedTo = cboAssignees.Text,
                 Title = txtIssueTitle.Text,
                 Description = txtDescription.Text,
@@ -259,11 +259,11 @@ namespace IssueCreator
 
         private async void UpdateAssigneesListAsync()
         {
-            (string org, string repo) = GetRepoOwner();
+            (string owner, string repo) = GetRepoOwner();
 
             cboAssignees.Enabled = false;
 
-            IReadOnlyList<Octokit.RepositoryContributor> contributors = await s_issueManager.GetContributorsAsync(org, repo);
+            IReadOnlyList<Octokit.RepositoryContributor> contributors = await s_issueManager.GetContributorsAsync(owner, repo);
 
             cboAssignees.Items.Clear();
             foreach (RepositoryContributor item in contributors)
@@ -330,8 +330,8 @@ namespace IssueCreator
 
             foreach (string item in s_settings.Repositories)
             {
-                (string org, string repo) = GetOwnerAndRepoFromString(item);
-                s_issueManager.RemoveEpicFromCache(org, repo);
+                (string owner, string repo) = GetOwnerAndRepoFromString(item);
+                s_issueManager.RemoveEpicFromCache(owner, repo);
             }
 
             UpdateEpicListAsync();

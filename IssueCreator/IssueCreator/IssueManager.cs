@@ -61,26 +61,23 @@ namespace IssueCreator
             }
         }
 
-        public async Task<IReadOnlyList<Milestone>> GetMilestonesAsync(string owner, string repository)
+        public async Task<IReadOnlyList<Milestone>> GetMilestonesAsync(string owner, string repo)
         {
-            Repository repo = await GetRepositoryAsync(owner, repository);
-            IReadOnlyList<Milestone> labels = await GetValueFromCache(StringTemplate.Milestones(owner, repository), () => _githubClient.Issue.Milestone.GetAllForRepository(owner, repository));
+            IReadOnlyList<Milestone> milestones = await GetValueFromCache(StringTemplate.Milestones(owner, repo), () => _githubClient.Issue.Milestone.GetAllForRepository(owner, repo));
+
+            return milestones;
+        }
+
+        public async Task<IReadOnlyList<Label>> GetLabelsAsync(string owner, string repo)
+        {
+            IReadOnlyList<Label> labels = await GetValueFromCache(StringTemplate.Labels(owner, repo), () => _githubClient.Issue.Labels.GetAllForRepository(owner, repo));
 
             return labels;
         }
 
-        public async Task<IReadOnlyList<Octokit.Label>> GetLabelsAsync(string owner, string repository)
+        public async Task<IReadOnlyList<RepositoryContributor>> GetContributorsAsync(string owner, string repo)
         {
-            Repository repo = await GetRepositoryAsync(owner, repository);
-            IReadOnlyList<Octokit.Label> labels = await GetValueFromCache(StringTemplate.Labels(owner, repository), () => _githubClient.Issue.Labels.GetAllForRepository(owner, repository));
-
-            return labels;
-        }
-
-        public async Task<IReadOnlyList<RepositoryContributor>> GetContributorsAsync(string owner, string repository)
-        {
-
-            IReadOnlyList<Octokit.RepositoryContributor> contributors = await GetValueFromCache(StringTemplate.Contributors(owner,repository), () => _githubClient.Repository.GetAllContributors(owner, repository));
+            IReadOnlyList<RepositoryContributor> contributors = await GetValueFromCache(StringTemplate.Contributors(owner,repo), () => _githubClient.Repository.GetAllContributors(owner, repo));
             return contributors;
         }
 
@@ -132,9 +129,9 @@ namespace IssueCreator
             return await _githubClient.Issue.Create(owner, repo, issue);
         }
 
-        public async Task<Repository> GetRepositoryAsync(string owner, string repository)
+        public async Task<Repository> GetRepositoryAsync(string owner, string repo)
         {
-            return await GetValueFromCache(StringTemplate.Repo(owner,repository), () => _githubClient.Repository.Get(owner, repository));
+            return await GetValueFromCache(StringTemplate.Repo(owner,repo), () => _githubClient.Repository.Get(owner, repo));
         }
 
         internal async Task<(bool, string)> TryCreateNewIssueAsync(IssueToCreate issueToCreate)
@@ -221,16 +218,16 @@ namespace IssueCreator
             Task[] tasks = new Task[repositories.Count];
 
             int count = 0;
-            foreach (string orgAndRepoName in repositories)
+            foreach (string ownerAndRepoName in repositories)
             {
                 // for each repo, get the epics.
-                (string org, string repo) = GetOwnerAndRepoFromString(orgAndRepoName);
+                (string owner, string repo) = GetOwnerAndRepoFromString(ownerAndRepoName);
 
                 tasks[count++] = Task.Run(async () =>
                 {
-                    Repository gitHubRepoObj = await GetRepositoryAsync(org, repo);
+                    Repository gitHubRepoObj = await GetRepositoryAsync(owner, repo);
 
-                    Response<EpicList> epicList = await GetValueFromCache(StringTemplate.Epic(org, repo), () => _zenHubClient.GetRepositoryClient(gitHubRepoObj.Id).GetEpicsAsync(), DateTimeOffset.Now.AddHours(1));
+                    Response<EpicList> epicList = await GetValueFromCache(StringTemplate.Epic(owner, repo), () => _zenHubClient.GetRepositoryClient(gitHubRepoObj.Id).GetEpicsAsync(), DateTimeOffset.Now.AddHours(1));
 
                     foreach (EpicInfo epic in epicList.Value.Epics)
                     {
@@ -276,14 +273,14 @@ namespace IssueCreator
             return valueToCache;
         }
 
-        internal void RemoveRepoFromCache(string org, string repo)
+        internal void RemoveRepoFromCache(string owner, string repo)
         {
-            _cache.Remove(StringTemplate.Repo(org, repo));
+            _cache.Remove(StringTemplate.Repo(owner, repo));
         }
 
-        internal void RemoveEpicFromCache(string org, string repo)
+        internal void RemoveEpicFromCache(string owner, string repo)
         {
-            _cache.Remove(StringTemplate.Epic(org, repo));
+            _cache.Remove(StringTemplate.Epic(owner, repo));
         }
 
         internal static class StringTemplate
