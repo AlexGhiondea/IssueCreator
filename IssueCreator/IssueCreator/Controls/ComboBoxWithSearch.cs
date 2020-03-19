@@ -5,6 +5,11 @@ namespace IssueCreator.Controls
 {
     public partial class ComboBoxWithSearch : ComboBox
     {
+        public ComboBoxWithSearch() : base()
+        {
+            AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+        }
+
         protected override CreateParams CreateParams
         {
             get
