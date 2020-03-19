@@ -104,14 +104,14 @@ namespace IssueCreator.Dialogs
             }
 
             string text = lstAvailableRepos.SelectedItem.ToString();
-            (string org, string repo) = GetOwnerAndRepoFromString(text);
+            (string owner, string repo) = GetOwnerAndRepoFromString(text);
             if (MessageBox.Show(this, $"Remove the repository '{text}' ?", "Are you sure?", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
                 NewSettings.Repositories.Remove(text);
                 lstAvailableRepos.Items.Remove(text);
 
                 //remove it from the cache
-                _issueManager.RemoveRepoFromCache(org, repo);
+                _issueManager.RemoveRepoFromCache(owner, repo);
             }
         }
 
