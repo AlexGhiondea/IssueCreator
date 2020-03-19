@@ -43,7 +43,7 @@ namespace IssueCreator
         {
             try
             {
-                _githubClient = new GitHubClient(new ProductHeaderValue("GitHubSync"))
+                _githubClient = new GitHubClient(new ProductHeaderValue("IssueCreator"))
                 {
                     Credentials = new Credentials(newToken)
                 };
