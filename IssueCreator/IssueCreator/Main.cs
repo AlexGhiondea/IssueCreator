@@ -69,7 +69,7 @@ namespace IssueCreator
                 return;
             }
             cboAvailableRepos.Items.Clear();
-            foreach (var item in s_settings.Repositories)
+            foreach (string item in s_settings.Repositories)
             {
                 cboAvailableRepos.Items.Add(item);
             }
@@ -89,7 +89,7 @@ namespace IssueCreator
 
             // build up the list of labels to appen
             List<string> selectedLabels = new List<string>();
-            foreach (var item in lstSelectedTags.Items)
+            foreach (object item in lstSelectedTags.Items)
             {
                 selectedLabels.Add(item.ToString());
             }
@@ -158,7 +158,7 @@ namespace IssueCreator
             tssStatus.Text = "Loading ZenHub Epics...";
 
             // retrieve the issues.
-            var issues = await s_issueManager.GetEpicsAsync(s_settings.Repositories);
+            List<IssueDescription> issues = await s_issueManager.GetEpicsAsync(s_settings.Repositories);
 
             // add just the open issues
             cboEpics.Items.Clear();
@@ -191,7 +191,7 @@ namespace IssueCreator
             cboMilestones.Enabled = false;
 
             cboMilestones.Items.Clear();
-            foreach (var item in milestones)
+            foreach (Milestone item in milestones)
             {
                 cboMilestones.Items.Add(new IssueMilestone(item));
             }
@@ -210,10 +210,10 @@ namespace IssueCreator
             }
 
             // Want to only keep in the selected list the labels that are common.
-            var inSelectedList = new HashSet<string>(GetItemsAsList(lstSelectedTags));
+            HashSet<string> inSelectedList = new HashSet<string>(GetItemsAsList(lstSelectedTags));
 
             // add to the list of selected labels the default ones
-            foreach (var item in s_settings.DefaultLabels)
+            foreach (string item in s_settings.DefaultLabels)
             {
                 inSelectedList.Add(item);
             }
@@ -221,7 +221,7 @@ namespace IssueCreator
             lstAvailableTags.Items.Clear();
             lstSelectedTags.Items.Clear();
 
-            foreach (var item in labels)
+            foreach (Octokit.Label item in labels)
             {
                 if (inSelectedList.Contains(item.Name))
                 {
@@ -237,7 +237,7 @@ namespace IssueCreator
 
         private IEnumerable<string> GetItemsAsList(ListBox lstSelectedTags)
         {
-            foreach (var item in lstSelectedTags.Items)
+            foreach (object item in lstSelectedTags.Items)
             {
                 yield return item.ToString();
             }
@@ -266,7 +266,7 @@ namespace IssueCreator
             IReadOnlyList<Octokit.RepositoryContributor> contributors = await s_issueManager.GetContributorsAsync(org, repo);
 
             cboAssignees.Items.Clear();
-            foreach (var item in contributors)
+            foreach (RepositoryContributor item in contributors)
             {
                 cboAssignees.Items.Add(item.Login);
             }
@@ -328,7 +328,7 @@ namespace IssueCreator
         {
             //clear the repositories from the cache and then force a refresh
 
-            foreach (var item in s_settings.Repositories)
+            foreach (string item in s_settings.Repositories)
             {
                 (string org, string repo) = GetOwnerAndRepoFromString(item);
                 s_issueManager.RemoveEpicFromCache(org, repo);

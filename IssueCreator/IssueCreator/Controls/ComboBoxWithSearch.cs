@@ -14,7 +14,7 @@ namespace IssueCreator.Controls
         {
             get
             {
-                var returnValue = base.CreateParams;
+                CreateParams returnValue = base.CreateParams;
                 returnValue.Style |= 0x2; // Add LBS_SORT
                 returnValue.Style ^= 128; // Remove LBS_USETABSTOPS (optional)
                 return returnValue;
@@ -25,10 +25,10 @@ namespace IssueCreator.Controls
         {
             if (keyData == (Keys.Control | Keys.Back))
             {
-                var result =  StringHelpers.ProcessCtrlBackspace(Text, SelectionStart, out string remainingText, out int newSelectionIndex);
+                bool processResult =  StringHelpers.ProcessCtrlBackspace(Text, SelectionStart, out string remainingText, out int newSelectionIndex);
                 Text = remainingText;
                 SelectionStart = newSelectionIndex;
-                return result;
+                return processResult;
             }
 
             return base.ProcessCmdKey(ref msg, keyData);

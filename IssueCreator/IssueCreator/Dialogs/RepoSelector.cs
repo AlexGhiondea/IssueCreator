@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Octokit;
+using System;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -47,7 +48,7 @@ namespace IssueCreator
         {
             try
             {
-                var repo = await _issueManager.GetRepositoryAsync(organization, repository);
+                Repository repo = await _issueManager.GetRepositoryAsync(organization, repository);
                 return true;
             }
             catch

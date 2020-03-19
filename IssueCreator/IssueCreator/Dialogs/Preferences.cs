@@ -22,12 +22,12 @@ namespace IssueCreator.Dialogs
             _issueManager = issueManager;
             _settingsFile = settingsFile;
 
-            foreach (var item in NewSettings.Repositories)
+            foreach (string item in NewSettings.Repositories)
             {
                 lstAvailableRepos.Items.Add(item);
             }
 
-            foreach (var item in NewSettings.DefaultLabels)
+            foreach (string item in NewSettings.DefaultLabels)
             {
                 lstDefaultLabels.Items.Add(item);
             }
