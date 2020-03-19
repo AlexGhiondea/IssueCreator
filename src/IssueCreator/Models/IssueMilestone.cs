@@ -8,14 +8,11 @@ namespace IssueCreator.Models
         public string Title { get; private set; }
         public DateTimeOffset? DueOn { get; private set; }
 
-        public static IssueMilestone FromGitHubMilestone(Octokit.Milestone m)
+        public IssueMilestone(Octokit.Milestone m)
         {
-            return new IssueMilestone()
-            {
-                Number = m.Number,
-                Title = m.Title,
-                DueOn = m.DueOn
-            };
+            Number = m.Number;
+            Title = m.Title;
+            DueOn = m.DueOn;
         }
 
         public override string ToString()

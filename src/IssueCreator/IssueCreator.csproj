@@ -186,7 +186,6 @@
     <Compile Include="Dialogs\TextInput.Designer.cs">
       <DependentUpon>TextInput.cs</DependentUpon>
     </Compile>
-    <Compile Include="Helpers\ObjectCreator.cs" />
     <Compile Include="Models\IssueToCreate.cs" />
     <Compile Include="Models\IssueDescription.cs" />
     <Compile Include="IssueManager.cs" />
@@ -221,6 +220,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <None Include="..\.editorconfig">
+      <Link>.editorconfig</Link>
+    </None>
     <None Include="IssueCreator_TemporaryKey.pfx" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
