@@ -26,10 +26,10 @@ namespace IssueCreator.Controls
                 {
                     if (!ReadOnly)
                     {
-                        var result = StringHelpers.ProcessCtrlBackspace(Text, SelectionStart, out string remainingText, out int newSelectionIndex);
+                        bool processResult = StringHelpers.ProcessCtrlBackspace(Text, SelectionStart, out string remainingText, out int newSelectionIndex);
                         Text = remainingText;
                         SelectionStart = newSelectionIndex;
-                        return result;
+                        return processResult;
                     }
                 }
                 else if (keyData == (Keys.Control | Keys.A))

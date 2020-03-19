@@ -8,7 +8,7 @@ namespace IssueCreator.Controls
         {
             get
             {
-                var returnValue = base.CreateParams;
+                CreateParams returnValue = base.CreateParams;
                 returnValue.Style |= 0x2; // Add LBS_SORT
                 returnValue.Style ^= 128; // Remove LBS_USETABSTOPS (optional)
                 return returnValue;

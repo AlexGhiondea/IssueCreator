@@ -1,4 +1,5 @@
-﻿using IssueCreator.Models;
+﻿using Azure;
+using IssueCreator.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Octokit;
 using System;
@@ -8,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using ZenHub;
+using ZenHub.Models;
 
 namespace IssueCreator
 {
@@ -49,7 +51,7 @@ namespace IssueCreator
                 };
 
                 //make request to ensure valid token
-                var user = _githubClient.User.Current().GetAwaiter().GetResult();
+                User user = _githubClient.User.Current().GetAwaiter().GetResult();
                 return true;
             }
             catch
@@ -61,7 +63,7 @@ namespace IssueCreator
 
         public async Task<IReadOnlyList<Milestone>> GetMilestonesAsync(string owner, string repository)
         {
-            var repo = await GetRepositoryAsync(owner, repository);
+            Repository repo = await GetRepositoryAsync(owner, repository);
             IReadOnlyList<Milestone> labels = await GetValueFromCache($"milestones_{owner}_{repo}", () => _githubClient.Issue.Milestone.GetAllForRepository(owner, repository));
 
             return labels;
@@ -69,7 +71,7 @@ namespace IssueCreator
 
         public async Task<IReadOnlyList<Octokit.Label>> GetLabelsAsync(string owner, string repository)
         {
-            var repo = await GetRepositoryAsync(owner, repository);
+            Repository repo = await GetRepositoryAsync(owner, repository);
             IReadOnlyList<Octokit.Label> labels = await GetValueFromCache($"labels_{owner}_{repo}", () => _githubClient.Issue.Labels.GetAllForRepository(owner, repository));
 
             return labels;
@@ -114,7 +116,7 @@ namespace IssueCreator
         {
             NewIssue issue = new NewIssue(title);
 
-            foreach (var item in labels)
+            foreach (string item in labels)
             {
                 issue.Labels.Add(item.ToString());
             }
@@ -173,7 +175,7 @@ namespace IssueCreator
 
             try
             {
-                var repoFromGH = await GetRepositoryAsync(issueToCreate.Organization, issueToCreate.Repository);
+                Repository repoFromGH = await GetRepositoryAsync(issueToCreate.Organization, issueToCreate.Repository);
                 // assign the epic, if one is selected
                 if (issueToCreate.Epic != null)
                 {
@@ -219,7 +221,7 @@ namespace IssueCreator
             Task[] tasks = new Task[repositories.Count];
 
             int count = 0;
-            foreach (var orgAndRepoName in repositories)
+            foreach (string orgAndRepoName in repositories)
             {
                 // for each repo, get the epics.
                 (string org, string repo) = GetOwnerAndRepoFromString(orgAndRepoName);
@@ -228,9 +230,9 @@ namespace IssueCreator
                 {
                     Repository gitHubRepoObj = await GetRepositoryAsync(org, repo);
 
-                    var epicList = await GetValueFromCache($"epic_{org}_{repo}", () => _zenHubClient.GetRepositoryClient(gitHubRepoObj.Id).GetEpicsAsync(), DateTimeOffset.Now.AddHours(1));
+                    Response<EpicList> epicList = await GetValueFromCache($"epic_{org}_{repo}", () => _zenHubClient.GetRepositoryClient(gitHubRepoObj.Id).GetEpicsAsync(), DateTimeOffset.Now.AddHours(1));
 
-                    foreach (var epic in epicList.Value.Epics)
+                    foreach (EpicInfo epic in epicList.Value.Epics)
                     {
                         long repoId = epic.RepositoryId;
                         int issueNumber = epic.IssueNumber;
