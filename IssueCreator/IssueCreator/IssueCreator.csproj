@@ -186,7 +186,6 @@
     <Compile Include="Dialogs\TextInput.Designer.cs">
       <DependentUpon>TextInput.cs</DependentUpon>
     </Compile>
-    <Compile Include="Helpers\ObjectCreator.cs" />
     <Compile Include="Models\IssueToCreate.cs" />
     <Compile Include="Models\IssueDescription.cs" />
     <Compile Include="IssueManager.cs" />
