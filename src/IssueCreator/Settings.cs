@@ -57,9 +57,16 @@ namespace IssueCreator
                 return new Settings();
             }
 
-            using (StreamReader sr = new StreamReader(file))
+            try
             {
-                return DecryptSettings(JsonSerializer.Deserialize<Settings>(sr.ReadToEnd()));
+                using (StreamReader sr = new StreamReader(file))
+                {
+                    return DecryptSettings(JsonSerializer.Deserialize<Settings>(sr.ReadToEnd()));
+                }
+            }
+            catch
+            {
+                return new Settings();
             }
         }
 

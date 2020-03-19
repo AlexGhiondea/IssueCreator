@@ -7,6 +7,7 @@ namespace IssueCreator.Dialogs
 {
     public partial class Preferences : Form
     {
+        private const string TokenProvided = "<token provided>";
         private IssueManager _issueManager;
         public Settings NewSettings { get; }
         private string _settingsFile;
@@ -21,24 +22,24 @@ namespace IssueCreator.Dialogs
             _issueManager = issueManager;
             _settingsFile = settingsFile;
 
-            foreach (var item in NewSettings.Repositories)
+            foreach (string item in NewSettings.Repositories)
             {
                 lstAvailableRepos.Items.Add(item);
             }
 
-            foreach (var item in NewSettings.DefaultLabels)
+            foreach (string item in NewSettings.DefaultLabels)
             {
                 lstDefaultLabels.Items.Add(item);
             }
 
             if (!string.IsNullOrEmpty(NewSettings.ZenHubToken))
             {
-                txtToken.Text = "<token provided>";
+                txtToken.Text = TokenProvided;
             }
 
             if (!string.IsNullOrEmpty(NewSettings.GitHubToken))
             {
-                txtGitHubToken.Text = "<token provided>";
+                txtGitHubToken.Text = TokenProvided;
             }
 
             if (!string.IsNullOrEmpty(NewSettings.DefaultTitle))
@@ -72,12 +73,12 @@ namespace IssueCreator.Dialogs
 
         private void BtnSave_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(NewSettings.ZenHubToken) && txtToken.Text != "<token provided>")
+            if (string.IsNullOrEmpty(NewSettings.ZenHubToken) && txtToken.Text != TokenProvided)
             {
                 NewSettings.ZenHubToken = txtToken.Text;
             }
 
-            if (string.IsNullOrEmpty(NewSettings.GitHubToken) && txtGitHubToken.Text != "<token provided>")
+            if (string.IsNullOrEmpty(NewSettings.GitHubToken) && txtGitHubToken.Text != TokenProvided)
             {
                 NewSettings.GitHubToken = txtGitHubToken.Text;
             }
@@ -103,14 +104,14 @@ namespace IssueCreator.Dialogs
             }
 
             string text = lstAvailableRepos.SelectedItem.ToString();
-            (string org, string repo) = GetOwnerAndRepoFromString(text);
+            (string owner, string repo) = GetOwnerAndRepoFromString(text);
             if (MessageBox.Show(this, $"Remove the repository '{text}' ?", "Are you sure?", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
                 NewSettings.Repositories.Remove(text);
                 lstAvailableRepos.Items.Remove(text);
 
                 //remove it from the cache
-                _issueManager.RemoveRepoFromCache(org, repo);
+                _issueManager.RemoveRepoFromCache(owner, repo);
             }
         }
 

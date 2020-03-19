@@ -26,29 +26,10 @@ namespace IssueCreator.Controls
                 {
                     if (!ReadOnly)
                     {
-                        if (SelectionStart > 0)
-                        {
-                            int i = (SelectionStart - 1);
-
-                            // Potentially trim white space:
-                            if (char.IsWhiteSpace(Text, i))
-                                i = Text.StartIndexOfSameCharacterClass(i) - 1;
-
-                            // Find previous marker:
-                            if (i > 0)
-                                i = Text.StartIndexOfSameCharacterClass(i);
-                            else
-                                i = 0; // Limit i as it may become -1 on trimming above.
-
-                            // Remove until previous marker or the beginning:
-                            Text = Text.Remove(i, SelectionStart - i);
-                            SelectionStart = i;
-                            return (true);
-                        }
-                        else
-                        {
-                            return (true); // Ignore to prevent a white box being placed.
-                        }
+                        bool processResult = StringHelpers.ProcessCtrlBackspace(Text, SelectionStart, out string remainingText, out int newSelectionIndex);
+                        Text = remainingText;
+                        SelectionStart = newSelectionIndex;
+                        return processResult;
                     }
                 }
                 else if (keyData == (Keys.Control | Keys.A))

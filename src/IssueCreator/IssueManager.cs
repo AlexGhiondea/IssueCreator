@@ -1,4 +1,5 @@
-﻿using IssueCreator.Models;
+﻿using Azure;
+using IssueCreator.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Octokit;
 using System;
@@ -8,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using ZenHub;
+using ZenHub.Models;
 
 namespace IssueCreator
 {
@@ -43,13 +45,13 @@ namespace IssueCreator
         {
             try
             {
-                _githubClient = new GitHubClient(new ProductHeaderValue("GitHubSync"))
+                _githubClient = new GitHubClient(new ProductHeaderValue("IssueCreator"))
                 {
                     Credentials = new Credentials(newToken)
                 };
 
                 //make request to ensure valid token
-                var user = _githubClient.User.Current().GetAwaiter().GetResult();
+                User user = _githubClient.User.Current().GetAwaiter().GetResult();
                 return true;
             }
             catch
@@ -59,26 +61,23 @@ namespace IssueCreator
             }
         }
 
-        public async Task<IReadOnlyList<Milestone>> GetMilestonesAsync(string owner, string repository)
+        public async Task<IReadOnlyList<Milestone>> GetMilestonesAsync(string owner, string repo)
         {
-            var repo = await GetRepositoryAsync(owner, repository);
-            IReadOnlyList<Milestone> labels = await GetValueFromCache($"milestones_{owner}_{repo}", () => _githubClient.Issue.Milestone.GetAllForRepository(owner, repository));
+            IReadOnlyList<Milestone> milestones = await GetValueFromCache(StringTemplate.Milestones(owner, repo), () => _githubClient.Issue.Milestone.GetAllForRepository(owner, repo));
+
+            return milestones;
+        }
+
+        public async Task<IReadOnlyList<Label>> GetLabelsAsync(string owner, string repo)
+        {
+            IReadOnlyList<Label> labels = await GetValueFromCache(StringTemplate.Labels(owner, repo), () => _githubClient.Issue.Labels.GetAllForRepository(owner, repo));
 
             return labels;
         }
 
-        public async Task<IReadOnlyList<Octokit.Label>> GetLabelsAsync(string owner, string repository)
+        public async Task<IReadOnlyList<RepositoryContributor>> GetContributorsAsync(string owner, string repo)
         {
-            var repo = await GetRepositoryAsync(owner, repository);
-            IReadOnlyList<Octokit.Label> labels = await GetValueFromCache($"labels_{owner}_{repo}", () => _githubClient.Issue.Labels.GetAllForRepository(owner, repository));
-
-            return labels;
-        }
-
-        public async Task<IReadOnlyList<RepositoryContributor>> GetContributorsAsync(string owner, string repository)
-        {
-
-            IReadOnlyList<Octokit.RepositoryContributor> contributors = await GetValueFromCache($"contributors_{owner}_{repository}", () => _githubClient.Repository.GetAllContributors(owner, repository));
+            IReadOnlyList<RepositoryContributor> contributors = await GetValueFromCache(StringTemplate.Contributors(owner,repo), () => _githubClient.Repository.GetAllContributors(owner, repo));
             return contributors;
         }
 
@@ -86,7 +85,9 @@ namespace IssueCreator
         {
             try
             {
-                await _zenHubClient.GetEpicClient(repoId, epicNumber).AddIssuesAsync(new[] { Helpers.ObjectCreator.CreateIssue(issueNumber, repoIdIssue) });
+                //create an issue with just the number and repository set
+                Issue issue = new Issue(default, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default, issueNumber, default, default, new Repository(repoIdIssue), default);
+                await _zenHubClient.GetEpicClient(repoId, epicNumber).AddIssuesAsync(new[] { issue });
                 return true;
             }
             catch
@@ -112,7 +113,7 @@ namespace IssueCreator
         {
             NewIssue issue = new NewIssue(title);
 
-            foreach (var item in labels)
+            foreach (string item in labels)
             {
                 issue.Labels.Add(item.ToString());
             }
@@ -128,9 +129,9 @@ namespace IssueCreator
             return await _githubClient.Issue.Create(owner, repo, issue);
         }
 
-        public async Task<Repository> GetRepositoryAsync(string owner, string repository)
+        public async Task<Repository> GetRepositoryAsync(string owner, string repo)
         {
-            return await GetValueFromCache($"repo_{owner}_{repository}", () => _githubClient.Repository.Get(owner, repository));
+            return await GetValueFromCache(StringTemplate.Repo(owner,repo), () => _githubClient.Repository.Get(owner, repo));
         }
 
         internal async Task<(bool, string)> TryCreateNewIssueAsync(IssueToCreate issueToCreate)
@@ -151,33 +152,48 @@ namespace IssueCreator
                 return (false, "Estimate needs to be a positive number greater than zero.");
             }
 
-            // Create the issue on GitHub
-            var createdIssue = await CreateIssueAsync(
-                issueToCreate.Organization,
-                issueToCreate.Repository,
-                issueToCreate.Title,
-                issueToCreate.Description,
-                issueToCreate.AssignedTo?.ToString(),
-                issueToCreate.Labels,
-                issueToCreate.Milestone.Number);
-
-            var repoFromGH = await GetRepositoryAsync(issueToCreate.Organization, issueToCreate.Repository);
-            // assign the epic, if one is selected
-            if (issueToCreate.Epic != null)
+            Issue createdIssue;
+            try
             {
-                await AddIssueToEpicAsync(issueToCreate.Epic.Repo.Id, issueToCreate.Epic.Issue.Number, repoFromGH.Id, createdIssue.Number);
+                // Create the issue on GitHub
+                createdIssue = await CreateIssueAsync(
+                    issueToCreate.Organization,
+                    issueToCreate.Repository,
+                    issueToCreate.Title,
+                    issueToCreate.Description,
+                    issueToCreate.AssignedTo?.ToString(),
+                    issueToCreate.Labels,
+                    issueToCreate.Milestone.Number);
+            }
+            catch
+            {
+                return (false, "Could not create issue.");
             }
 
-            // set the estimate
-            if (estimate > 0)
+            try
             {
-                await SetIssueEstimateAsync(repoFromGH.Id, createdIssue.Number, estimate);
-            }
+                Repository repoFromGH = await GetRepositoryAsync(issueToCreate.Organization, issueToCreate.Repository);
+                // assign the epic, if one is selected
+                if (issueToCreate.Epic != null)
+                {
+                    await AddIssueToEpicAsync(issueToCreate.Epic.Repo.Id, issueToCreate.Epic.Issue.Number, repoFromGH.Id, createdIssue.Number);
+                }
 
-            // Convert to Epic
-            if (issueToCreate.CreateAsEpic)
+                // set the estimate
+                if (estimate > 0)
+                {
+                    await SetIssueEstimateAsync(repoFromGH.Id, createdIssue.Number, estimate);
+                }
+
+                // Convert to Epic
+                if (issueToCreate.CreateAsEpic)
+                {
+                    await ConvertToEpicAsync(repoFromGH.Id, createdIssue.Number);
+                }
+            }
+            catch
             {
-                await ConvertToEpicAsync(repoFromGH.Id, createdIssue.Number);
+                return (false, "Failed to create the epic. Please check the issue on the website.");
             }
 
             Process.Start(createdIssue.HtmlUrl);
@@ -187,7 +203,7 @@ namespace IssueCreator
 
         public async Task<Issue> GetIssueAsync(long repoId, int issueNumber)
         {
-            Issue issue = await GetValueFromCache($"issue_{repoId}_{issueNumber}", () => _githubClient.Issue.Get(repoId, issueNumber));
+            Issue issue = await GetValueFromCache(StringTemplate.Issue(repoId, issueNumber), () => _githubClient.Issue.Get(repoId, issueNumber));
             return issue;
         }
 
@@ -202,18 +218,18 @@ namespace IssueCreator
             Task[] tasks = new Task[repositories.Count];
 
             int count = 0;
-            foreach (var orgAndRepoName in repositories)
+            foreach (string ownerAndRepoName in repositories)
             {
                 // for each repo, get the epics.
-                (string org, string repo) = GetOwnerAndRepoFromString(orgAndRepoName);
+                (string owner, string repo) = GetOwnerAndRepoFromString(ownerAndRepoName);
 
                 tasks[count++] = Task.Run(async () =>
                 {
-                    Repository gitHubRepoObj = await GetRepositoryAsync(org, repo);
+                    Repository gitHubRepoObj = await GetRepositoryAsync(owner, repo);
 
-                    var epicList = await GetValueFromCache($"epic_{org}_{repo}", () => _zenHubClient.GetRepositoryClient(gitHubRepoObj.Id).GetEpicsAsync(), DateTimeOffset.Now.AddHours(1));
+                    Response<EpicList> epicList = await GetValueFromCache(StringTemplate.Epic(owner, repo), () => _zenHubClient.GetRepositoryClient(gitHubRepoObj.Id).GetEpicsAsync(), DateTimeOffset.Now.AddHours(1));
 
-                    foreach (var epic in epicList.Value.Epics)
+                    foreach (EpicInfo epic in epicList.Value.Epics)
                     {
                         long repoId = epic.RepositoryId;
                         int issueNumber = epic.IssueNumber;
@@ -257,14 +273,24 @@ namespace IssueCreator
             return valueToCache;
         }
 
-        internal void RemoveRepoFromCache(string org, string repo)
+        internal void RemoveRepoFromCache(string owner, string repo)
         {
-            _cache.Remove($"repo_{org}_{repo}");
+            _cache.Remove(StringTemplate.Repo(owner, repo));
         }
 
-        internal void RemoveEpicFromCache(string org, string repo)
+        internal void RemoveEpicFromCache(string owner, string repo)
         {
-            _cache.Remove($"epic_{org}_{repo}");
+            _cache.Remove(StringTemplate.Epic(owner, repo));
+        }
+
+        internal static class StringTemplate
+        {
+            public static string Epic(string owner, string repo) => $"epic_{owner}_{repo}";
+            public static string Repo(string owner, string repo) => $"repo_{owner}_{repo}";
+            public static string Milestones(string owner, string repo) => $"milestones_{owner}_{repo}";
+            public static string Labels(string owner, string repo) => $"labels_{owner}_{repo}";
+            public static string Contributors(string owner, string repo) => $"contributors_{owner}_{repo}";
+            internal static string Issue(long repoId, int issueNumber) => $"issue_{repoId}_{issueNumber}";
         }
     }
 }
