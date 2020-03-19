@@ -86,7 +86,9 @@ namespace IssueCreator
         {
             try
             {
-                await _zenHubClient.GetEpicClient(repoId, epicNumber).AddIssuesAsync(new[] { Helpers.ObjectCreator.CreateIssue(issueNumber, repoIdIssue) });
+                //create an issue with just the number and repository set
+                Issue issue = new Issue(default, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default, issueNumber, default, default, new Repository(repoIdIssue), default);
+                await _zenHubClient.GetEpicClient(repoId, epicNumber).AddIssuesAsync(new[] { issue });
                 return true;
             }
             catch
