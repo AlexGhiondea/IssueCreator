@@ -2,6 +2,36 @@
 {
     public static class StringHelpers
     {
+
+        public static bool ProcessCtrlBackspace(string inputText, int selectionStart, out string remainingText, out int newSelectionIndex)
+        {
+            if (selectionStart > 0)
+            {
+                int i = (selectionStart - 1);
+
+                // Potentially trim white space:
+                if (char.IsWhiteSpace(inputText, i))
+                    i = inputText.StartIndexOfSameCharacterClass(i) - 1;
+
+                // Find previous marker:
+                if (i > 0)
+                    i = inputText.StartIndexOfSameCharacterClass(i);
+                else
+                    i = 0; // Limit i as it may become -1 on trimming above.
+
+                // Remove until previous marker or the beginning:
+                remainingText = inputText.Remove(i, selectionStart - i);
+                newSelectionIndex = i;
+                return (true);
+            }
+            else
+            {
+                remainingText = inputText;
+                newSelectionIndex = selectionStart;
+                return (true); // Ignore to prevent a white box being placed.
+            }
+        }
+
         /// <summary>
         /// Returns the start index of the same character class.
         /// </summary>
