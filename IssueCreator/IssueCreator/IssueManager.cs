@@ -64,7 +64,7 @@ namespace IssueCreator
         public async Task<IReadOnlyList<Milestone>> GetMilestonesAsync(string owner, string repository)
         {
             Repository repo = await GetRepositoryAsync(owner, repository);
-            IReadOnlyList<Milestone> labels = await GetValueFromCache($"milestones_{owner}_{repo}", () => _githubClient.Issue.Milestone.GetAllForRepository(owner, repository));
+            IReadOnlyList<Milestone> labels = await GetValueFromCache(StringTemplate.Milestones(owner, repository), () => _githubClient.Issue.Milestone.GetAllForRepository(owner, repository));
 
             return labels;
         }
@@ -72,7 +72,7 @@ namespace IssueCreator
         public async Task<IReadOnlyList<Octokit.Label>> GetLabelsAsync(string owner, string repository)
         {
             Repository repo = await GetRepositoryAsync(owner, repository);
-            IReadOnlyList<Octokit.Label> labels = await GetValueFromCache($"labels_{owner}_{repo}", () => _githubClient.Issue.Labels.GetAllForRepository(owner, repository));
+            IReadOnlyList<Octokit.Label> labels = await GetValueFromCache(StringTemplate.Labels(owner, repository), () => _githubClient.Issue.Labels.GetAllForRepository(owner, repository));
 
             return labels;
         }
@@ -80,7 +80,7 @@ namespace IssueCreator
         public async Task<IReadOnlyList<RepositoryContributor>> GetContributorsAsync(string owner, string repository)
         {
 
-            IReadOnlyList<Octokit.RepositoryContributor> contributors = await GetValueFromCache($"contributors_{owner}_{repository}", () => _githubClient.Repository.GetAllContributors(owner, repository));
+            IReadOnlyList<Octokit.RepositoryContributor> contributors = await GetValueFromCache(StringTemplate.Contributors(owner,repository), () => _githubClient.Repository.GetAllContributors(owner, repository));
             return contributors;
         }
 
@@ -134,7 +134,7 @@ namespace IssueCreator
 
         public async Task<Repository> GetRepositoryAsync(string owner, string repository)
         {
-            return await GetValueFromCache($"repo_{owner}_{repository}", () => _githubClient.Repository.Get(owner, repository));
+            return await GetValueFromCache(StringTemplate.Repo(owner,repository), () => _githubClient.Repository.Get(owner, repository));
         }
 
         internal async Task<(bool, string)> TryCreateNewIssueAsync(IssueToCreate issueToCreate)
@@ -206,7 +206,7 @@ namespace IssueCreator
 
         public async Task<Issue> GetIssueAsync(long repoId, int issueNumber)
         {
-            Issue issue = await GetValueFromCache($"issue_{repoId}_{issueNumber}", () => _githubClient.Issue.Get(repoId, issueNumber));
+            Issue issue = await GetValueFromCache(StringTemplate.Issue(repoId, issueNumber), () => _githubClient.Issue.Get(repoId, issueNumber));
             return issue;
         }
 
@@ -230,7 +230,7 @@ namespace IssueCreator
                 {
                     Repository gitHubRepoObj = await GetRepositoryAsync(org, repo);
 
-                    Response<EpicList> epicList = await GetValueFromCache($"epic_{org}_{repo}", () => _zenHubClient.GetRepositoryClient(gitHubRepoObj.Id).GetEpicsAsync(), DateTimeOffset.Now.AddHours(1));
+                    Response<EpicList> epicList = await GetValueFromCache(StringTemplate.Epic(org, repo), () => _zenHubClient.GetRepositoryClient(gitHubRepoObj.Id).GetEpicsAsync(), DateTimeOffset.Now.AddHours(1));
 
                     foreach (EpicInfo epic in epicList.Value.Epics)
                     {
@@ -278,12 +278,22 @@ namespace IssueCreator
 
         internal void RemoveRepoFromCache(string org, string repo)
         {
-            _cache.Remove($"repo_{org}_{repo}");
+            _cache.Remove(StringTemplate.Repo(org, repo));
         }
 
         internal void RemoveEpicFromCache(string org, string repo)
         {
-            _cache.Remove($"epic_{org}_{repo}");
+            _cache.Remove(StringTemplate.Epic(org, repo));
+        }
+
+        internal static class StringTemplate
+        {
+            public static string Epic(string owner, string repo) => $"epic_{owner}_{repo}";
+            public static string Repo(string owner, string repo) => $"repo_{owner}_{repo}";
+            public static string Milestones(string owner, string repo) => $"milestones_{owner}_{repo}";
+            public static string Labels(string owner, string repo) => $"labels_{owner}_{repo}";
+            public static string Contributors(string owner, string repo) => $"contributors_{owner}_{repo}";
+            internal static string Issue(long repoId, int issueNumber) => $"issue_{repoId}_{issueNumber}";
         }
     }
 }
