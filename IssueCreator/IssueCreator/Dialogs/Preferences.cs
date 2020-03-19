@@ -7,6 +7,7 @@ namespace IssueCreator.Dialogs
 {
     public partial class Preferences : Form
     {
+        private const string TokenProvided = "<token provided>";
         private IssueManager _issueManager;
         public Settings NewSettings { get; }
         private string _settingsFile;
@@ -33,12 +34,12 @@ namespace IssueCreator.Dialogs
 
             if (!string.IsNullOrEmpty(NewSettings.ZenHubToken))
             {
-                txtToken.Text = "<token provided>";
+                txtToken.Text = TokenProvided;
             }
 
             if (!string.IsNullOrEmpty(NewSettings.GitHubToken))
             {
-                txtGitHubToken.Text = "<token provided>";
+                txtGitHubToken.Text = TokenProvided;
             }
 
             if (!string.IsNullOrEmpty(NewSettings.DefaultTitle))
@@ -72,12 +73,12 @@ namespace IssueCreator.Dialogs
 
         private void BtnSave_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(NewSettings.ZenHubToken) && txtToken.Text != "<token provided>")
+            if (string.IsNullOrEmpty(NewSettings.ZenHubToken) && txtToken.Text != TokenProvided)
             {
                 NewSettings.ZenHubToken = txtToken.Text;
             }
 
-            if (string.IsNullOrEmpty(NewSettings.GitHubToken) && txtGitHubToken.Text != "<token provided>")
+            if (string.IsNullOrEmpty(NewSettings.GitHubToken) && txtGitHubToken.Text != TokenProvided)
             {
                 NewSettings.GitHubToken = txtGitHubToken.Text;
             }
