@@ -153,33 +153,48 @@ namespace IssueCreator
                 return (false, "Estimate needs to be a positive number greater than zero.");
             }
 
-            // Create the issue on GitHub
-            var createdIssue = await CreateIssueAsync(
-                issueToCreate.Organization,
-                issueToCreate.Repository,
-                issueToCreate.Title,
-                issueToCreate.Description,
-                issueToCreate.AssignedTo?.ToString(),
-                issueToCreate.Labels,
-                issueToCreate.Milestone.Number);
-
-            var repoFromGH = await GetRepositoryAsync(issueToCreate.Organization, issueToCreate.Repository);
-            // assign the epic, if one is selected
-            if (issueToCreate.Epic != null)
+            Issue createdIssue;
+            try
             {
-                await AddIssueToEpicAsync(issueToCreate.Epic.Repo.Id, issueToCreate.Epic.Issue.Number, repoFromGH.Id, createdIssue.Number);
+                // Create the issue on GitHub
+                createdIssue = await CreateIssueAsync(
+                    issueToCreate.Organization,
+                    issueToCreate.Repository,
+                    issueToCreate.Title,
+                    issueToCreate.Description,
+                    issueToCreate.AssignedTo?.ToString(),
+                    issueToCreate.Labels,
+                    issueToCreate.Milestone.Number);
+            }
+            catch
+            {
+                return (false, "Could not create issue.");
             }
 
-            // set the estimate
-            if (estimate > 0)
+            try
             {
-                await SetIssueEstimateAsync(repoFromGH.Id, createdIssue.Number, estimate);
-            }
+                var repoFromGH = await GetRepositoryAsync(issueToCreate.Organization, issueToCreate.Repository);
+                // assign the epic, if one is selected
+                if (issueToCreate.Epic != null)
+                {
+                    await AddIssueToEpicAsync(issueToCreate.Epic.Repo.Id, issueToCreate.Epic.Issue.Number, repoFromGH.Id, createdIssue.Number);
+                }
 
-            // Convert to Epic
-            if (issueToCreate.CreateAsEpic)
+                // set the estimate
+                if (estimate > 0)
+                {
+                    await SetIssueEstimateAsync(repoFromGH.Id, createdIssue.Number, estimate);
+                }
+
+                // Convert to Epic
+                if (issueToCreate.CreateAsEpic)
+                {
+                    await ConvertToEpicAsync(repoFromGH.Id, createdIssue.Number);
+                }
+            }
+            catch
             {
-                await ConvertToEpicAsync(repoFromGH.Id, createdIssue.Number);
+                return (false, "Failed to create the epic. Please check the issue on the website.");
             }
 
             Process.Start(createdIssue.HtmlUrl);
