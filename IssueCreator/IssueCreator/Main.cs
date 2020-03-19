@@ -193,7 +193,7 @@ namespace IssueCreator
             cboMilestones.Items.Clear();
             foreach (var item in milestones)
             {
-                cboMilestones.Items.Add(IssueCreator.Models.IssueMilestone.FromGitHubMilestone(item));
+                cboMilestones.Items.Add(new IssueMilestone(item));
             }
             cboMilestones.Enabled = true;
         }
