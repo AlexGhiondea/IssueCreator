@@ -190,11 +190,32 @@ namespace IssueCreator
 
             cboMilestones.Enabled = false;
 
+            // keep track of the old selected milestone and try to re-apply it in the new repo
+            IssueMilestone previousMilestone = cboMilestones.SelectedItem as IssueMilestone;
+            IssueMilestone newMilestoneInUI = null;
             cboMilestones.Items.Clear();
+
             foreach (Milestone item in milestones)
             {
-                cboMilestones.Items.Add(new IssueMilestone(item));
+                IssueMilestone newMilestone = new IssueMilestone(item);
+                cboMilestones.Items.Add(newMilestone);
+
+                // if a milestone was selected previously and we did have a milestone in the new repo that has the same title
+                // then use that in the UI.
+                if (previousMilestone != null && previousMilestone.Title == newMilestone.Title)
+                {
+                    newMilestoneInUI = newMilestone;
+                }
             }
+
+            cboMilestones.SelectedItem = newMilestoneInUI;
+
+            // if we did not find a matching milestone in the new repo, clear the text.
+            if (newMilestoneInUI == null)
+            {
+                cboMilestones.Text = string.Empty;
+            }
+
             cboMilestones.Enabled = true;
         }
 
