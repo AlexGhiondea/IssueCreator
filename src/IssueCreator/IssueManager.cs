@@ -163,7 +163,7 @@ namespace IssueCreator
                     issueToCreate.Description,
                     issueToCreate.AssignedTo?.ToString(),
                     issueToCreate.Labels,
-                    issueToCreate.Milestone.Number);
+                    issueToCreate.Milestone?.Number);
             }
             catch
             {
