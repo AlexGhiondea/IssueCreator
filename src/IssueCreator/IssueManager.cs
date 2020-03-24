@@ -1,12 +1,15 @@
 ﻿using Azure;
 using IssueCreator.Models;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Octokit;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using ZenHub;
 using ZenHub.Models;
@@ -15,9 +18,10 @@ namespace IssueCreator
 {
     public class IssueManager
     {
-        ZenHubClient _zenHubClient;
-        GitHubClient _githubClient;
-        MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
+        private ZenHubClient _zenHubClient;
+        private GitHubClient _githubClient;
+        private MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
+        private Dictionary<string, Type> _cacheEntries = new Dictionary<string, Type>(); //keeps track of the keys added to the cache
 
         public static IssueManager Create(Settings settings)
         {
@@ -61,23 +65,23 @@ namespace IssueCreator
             }
         }
 
-        public async Task<IReadOnlyList<Milestone>> GetMilestonesAsync(string owner, string repo)
+        public async Task<List<IssueMilestone>> GetMilestonesAsync(string owner, string repo)
         {
-            IReadOnlyList<Milestone> milestones = await GetValueFromCache(StringTemplate.Milestones(owner, repo), () => _githubClient.Issue.Milestone.GetAllForRepository(owner, repo));
+            List<IssueMilestone> milestones = await GetValueFromCache(StringTemplate.Milestones(owner, repo), async () => IssueMilestone.FromMilestoneList(await _githubClient.Issue.Milestone.GetAllForRepository(owner, repo)));
 
             return milestones;
         }
 
-        public async Task<IReadOnlyList<Label>> GetLabelsAsync(string owner, string repo)
+        public async Task<List<RepoLabel>> GetLabelsAsync(string owner, string repo)
         {
-            IReadOnlyList<Label> labels = await GetValueFromCache(StringTemplate.Labels(owner, repo), () => _githubClient.Issue.Labels.GetAllForRepository(owner, repo));
+            List<RepoLabel> labels = await GetValueFromCache(StringTemplate.Labels(owner, repo), async () => RepoLabel.FromLabelList(await _githubClient.Issue.Labels.GetAllForRepository(owner, repo)));
 
             return labels;
         }
 
-        public async Task<IReadOnlyList<RepositoryContributor>> GetContributorsAsync(string owner, string repo)
+        public async Task<List<GitHubContributor>> GetContributorsAsync(string owner, string repo)
         {
-            IReadOnlyList<RepositoryContributor> contributors = await GetValueFromCache(StringTemplate.Contributors(owner,repo), () => _githubClient.Repository.GetAllContributors(owner, repo));
+            List<GitHubContributor> contributors = await GetValueFromCache(StringTemplate.Contributors(owner, repo), async () => GitHubContributor.FromContributorsList( await _githubClient.Repository.GetAllContributors(owner, repo)));
             return contributors;
         }
 
@@ -129,9 +133,9 @@ namespace IssueCreator
             return await _githubClient.Issue.Create(owner, repo, issue);
         }
 
-        public async Task<Repository> GetRepositoryAsync(string owner, string repo)
+        public async Task<RepositoryInfo> GetRepositoryAsync(string owner, string repo)
         {
-            return await GetValueFromCache(StringTemplate.Repo(owner,repo), () => _githubClient.Repository.Get(owner, repo));
+            return await GetValueFromCache(StringTemplate.Repo(owner, repo), async () => new RepositoryInfo(await _githubClient.Repository.Get(owner, repo)));
         }
 
         internal async Task<(bool, string)> TryCreateNewIssueAsync(IssueToCreate issueToCreate)
@@ -172,7 +176,7 @@ namespace IssueCreator
 
             try
             {
-                Repository repoFromGH = await GetRepositoryAsync(issueToCreate.Organization, issueToCreate.Repository);
+                RepositoryInfo repoFromGH = await GetRepositoryAsync(issueToCreate.Organization, issueToCreate.Repository);
                 // assign the epic, if one is selected
                 if (issueToCreate.Epic != null)
                 {
@@ -201,9 +205,9 @@ namespace IssueCreator
             return (true, string.Empty);
         }
 
-        public async Task<Issue> GetIssueAsync(long repoId, int issueNumber)
+        public async Task<IssueObject> GetIssueAsync(long repoId, int issueNumber)
         {
-            Issue issue = await GetValueFromCache(StringTemplate.Issue(repoId, issueNumber), () => _githubClient.Issue.Get(repoId, issueNumber));
+            IssueObject issue = await GetValueFromCache(StringTemplate.Issue(repoId, issueNumber), async () => new IssueObject(await _githubClient.Issue.Get(repoId, issueNumber)));
             return issue;
         }
 
@@ -225,16 +229,16 @@ namespace IssueCreator
 
                 tasks[count++] = Task.Run(async () =>
                 {
-                    Repository gitHubRepoObj = await GetRepositoryAsync(owner, repo);
+                    RepositoryInfo gitHubRepoObj = await GetRepositoryAsync(owner, repo);
 
-                    Response<EpicList> epicList = await GetValueFromCache(StringTemplate.Epic(owner, repo), () => _zenHubClient.GetRepositoryClient(gitHubRepoObj.Id).GetEpicsAsync(), DateTimeOffset.Now.AddHours(1));
+                    EpicList epicList = await GetValueFromCache(StringTemplate.Epic(owner, repo), async () => (await _zenHubClient.GetRepositoryClient(gitHubRepoObj.Id).GetEpicsAsync()).Value, DateTimeOffset.Now.AddHours(1));
 
-                    foreach (EpicInfo epic in epicList.Value.Epics)
+                    foreach (EpicInfo epic in epicList.Epics)
                     {
                         long repoId = epic.RepositoryId;
                         int issueNumber = epic.IssueNumber;
                         // from the issue link, get the cached issue from the repo
-                        Issue issue = await GetIssueAsync(repoId, issueNumber);
+                        IssueObject issue = await GetIssueAsync(repoId, issueNumber);
 
                         result.Add(new IssueDescription() { Issue = issue, Repo = gitHubRepoObj });
                     }
@@ -252,6 +256,9 @@ namespace IssueCreator
             return (parts[0], parts[1]);
         }
 
+        /// <summary>
+        /// This is the code that calls into the cache.
+        /// </summary>
         private async Task<TResult> GetValueFromCache<TResult>(string key, Func<Task<TResult>> getValue, DateTimeOffset cacheDuration = default)
         {
             TResult itemInCache = _cache.Get<TResult>(key);
@@ -260,8 +267,10 @@ namespace IssueCreator
                 return itemInCache;
             }
 
-            // add the value to the cache.
+            // add the current key to the list of entries in the cache
+            _cacheEntries[key]=  typeof(TResult);
 
+            // add the value to the cache.
             if (cacheDuration == default)
             {
                 cacheDuration = DateTimeOffset.Now.AddHours(8);
@@ -273,18 +282,73 @@ namespace IssueCreator
             return valueToCache;
         }
 
+        public void SerializeCacheDataToFolder(string folder)
+        {
+            foreach (KeyValuePair<string, Type> item in _cacheEntries)
+            {
+                object obj = _cache.Get(item.Key);
+                if (obj == null)
+                {
+                    continue;
+                }
+
+                // serialize it to disk.
+                using (StreamWriter sw = new StreamWriter($"{Path.Combine(folder, item.Key)}.json"))
+                {
+                    sw.Write(JsonSerializer.Serialize(obj, item.Value));
+                }
+            }
+        }
+
+        public bool DeserializeCacheDataFromFolder(string folder)
+        {
+            bool deserializedData = false;
+            foreach (string file in Directory.GetFiles(folder, "*.json"))
+            {
+                // serialize it to disk.
+                using (StreamReader sr = new StreamReader(file))
+                {
+                    string key = Path.GetFileNameWithoutExtension(file);
+                    Type cacheType = StringTemplate.GetType(key);
+
+                    object deserializedObject = JsonSerializer.Deserialize(sr.ReadToEnd(), cacheType);
+
+                    _cache.Set(key, deserializedObject, DateTimeOffset.Now.AddMinutes(10));
+                    deserializedData = true;
+                }
+            }
+
+            return deserializedData;
+        }
+
+
         internal void RemoveRepoFromCache(string owner, string repo)
         {
             _cache.Remove(StringTemplate.Repo(owner, repo));
+            _cacheEntries.Remove(StringTemplate.Repo(owner, repo));
         }
 
         internal void RemoveEpicFromCache(string owner, string repo)
         {
             _cache.Remove(StringTemplate.Epic(owner, repo));
+            _cacheEntries.Remove(StringTemplate.Epic(owner, repo));
         }
 
         internal static class StringTemplate
         {
+            public static Type GetType(string template)
+            {
+                // figure out the type we need.
+                if (template.ToLowerInvariant().StartsWith("epic")) return typeof(EpicList);
+                else if (template.ToLowerInvariant().StartsWith("issue")) return typeof(IssueObject);
+                else if (template.ToLowerInvariant().StartsWith("repo")) return typeof(RepositoryInfo);
+                else if (template.ToLowerInvariant().StartsWith("milestones")) return typeof(List<IssueMilestone>);
+                else if (template.ToLowerInvariant().StartsWith("labels")) return typeof(List<RepoLabel>);
+                else if (template.ToLowerInvariant().StartsWith("contributors")) return typeof(List<GitHubContributor>);
+                return null;
+            }
+
+
             public static string Epic(string owner, string repo) => $"epic_{owner}_{repo}";
             public static string Repo(string owner, string repo) => $"repo_{owner}_{repo}";
             public static string Milestones(string owner, string repo) => $"milestones_{owner}_{repo}";
@@ -294,3 +358,4 @@ namespace IssueCreator
         }
     }
 }
+

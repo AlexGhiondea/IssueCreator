@@ -186,6 +186,8 @@
     <Compile Include="Dialogs\TextInput.Designer.cs">
       <DependentUpon>TextInput.cs</DependentUpon>
     </Compile>
+    <Compile Include="Models\Contributor.cs" />
+    <Compile Include="Models\IssueObject.cs" />
     <Compile Include="Models\IssueToCreate.cs" />
     <Compile Include="Models\IssueDescription.cs" />
     <Compile Include="IssueManager.cs" />
@@ -196,6 +198,8 @@
       <DependentUpon>Main.cs</DependentUpon>
     </Compile>
     <Compile Include="Models\IssueMilestone.cs" />
+    <Compile Include="Models\RepoLabel.cs" />
+    <Compile Include="Models\RepositoryInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
