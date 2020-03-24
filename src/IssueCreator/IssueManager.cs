@@ -22,10 +22,11 @@ namespace IssueCreator
         private GitHubClient _githubClient;
         private MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
         private Dictionary<string, Type> _cacheEntries = new Dictionary<string, Type>(); //keeps track of the keys added to the cache
+        private string _cacheFolder;
 
-        public static IssueManager Create(Settings settings)
+        public static IssueManager Create(Settings settings, string cacheFolder)
         {
-            IssueManager manager = new IssueManager();
+            IssueManager manager = new IssueManager(cacheFolder);
             if (!manager.RefreshGitHubToken(settings.GitHubToken))
             {
                 return null;
@@ -36,8 +37,9 @@ namespace IssueCreator
             return manager;
         }
 
-        private IssueManager()
+        private IssueManager(string _cache)
         {
+            _cacheFolder = _cache;
         }
 
         public void RefreshZenHubToken(string newToken)
@@ -81,7 +83,7 @@ namespace IssueCreator
 
         public async Task<List<GitHubContributor>> GetContributorsAsync(string owner, string repo)
         {
-            List<GitHubContributor> contributors = await GetValueFromCache(StringTemplate.Contributors(owner, repo), async () => GitHubContributor.FromContributorsList( await _githubClient.Repository.GetAllContributors(owner, repo)));
+            List<GitHubContributor> contributors = await GetValueFromCache(StringTemplate.Contributors(owner, repo), async () => GitHubContributor.FromContributorsList(await _githubClient.Repository.GetAllContributors(owner, repo)));
             return contributors;
         }
 
@@ -264,11 +266,9 @@ namespace IssueCreator
             TResult itemInCache = _cache.Get<TResult>(key);
             if (itemInCache != null)
             {
+                // the value was found in the cache
                 return itemInCache;
             }
-
-            // add the current key to the list of entries in the cache
-            _cacheEntries[key]=  typeof(TResult);
 
             // add the value to the cache.
             if (cacheDuration == default)
@@ -277,26 +277,19 @@ namespace IssueCreator
             }
 
             TResult valueToCache = await getValue();
+
+            // save the object to disk
+            SerializeObjectToDisk(key, valueToCache);
+
             _cache.Set(key, valueToCache, cacheDuration);
 
             return valueToCache;
         }
-
-        public void SerializeCacheDataToFolder(string folder)
+        private void SerializeObjectToDisk<TValue>(string key, TValue value)
         {
-            foreach (KeyValuePair<string, Type> item in _cacheEntries)
+            using (StreamWriter sw = new StreamWriter($"{Path.Combine(_cacheFolder, key)}.json"))
             {
-                object obj = _cache.Get(item.Key);
-                if (obj == null)
-                {
-                    continue;
-                }
-
-                // serialize it to disk.
-                using (StreamWriter sw = new StreamWriter($"{Path.Combine(folder, item.Key)}.json"))
-                {
-                    sw.Write(JsonSerializer.Serialize(obj, item.Value));
-                }
+                sw.Write(JsonSerializer.Serialize(value));
             }
         }
 
@@ -320,7 +313,6 @@ namespace IssueCreator
 
             return deserializedData;
         }
-
 
         internal void RemoveRepoFromCache(string owner, string repo)
         {

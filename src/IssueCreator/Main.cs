@@ -18,7 +18,6 @@ namespace IssueCreator
         private static Settings s_settings;
         private static IssueManager s_issueManager;
         private static IssueToCreate s_previouslyCreatedIssue;
-        private bool _loadingComplete = false;
 
         private static string SettingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "IssueCreator");
         private static string CacheFolder = Path.Combine(SettingsFolder, "Cache");
@@ -46,14 +45,14 @@ namespace IssueCreator
 
             s_settings = Settings.Deserialize(SettingsFile);
 
-            s_issueManager = IssueManager.Create(s_settings);
+            s_issueManager = IssueManager.Create(s_settings, CacheFolder);
 
             // if we don't have a github token, prompt settings.
             if (s_issueManager == null)
             {
                 ShowPreferencesDialog();
 
-                s_issueManager = IssueManager.Create(s_settings);
+                s_issueManager = IssueManager.Create(s_settings, CacheFolder);
 
                 if (s_issueManager == null)
                 {
@@ -90,7 +89,7 @@ namespace IssueCreator
                 cboAvailableRepos.Items.Add(item);
             }
 
-            if (!string.IsNullOrEmpty(s_settings.DefaultTitle))
+            if (s_settings.DefaultTitle != null)
             {
                 txtIssueTitle.Text = s_settings.DefaultTitle;
             }
@@ -99,7 +98,6 @@ namespace IssueCreator
 
             // Start populating the epics from ZenHub
             await UpdateEpicListAsync();
-            _loadingComplete = true;
         }
 
         private async void BtnCreateIssue_Click(object sender, EventArgs e)
@@ -356,22 +354,10 @@ namespace IssueCreator
         {
             MoveItem(lstSelectedTags, lstAvailableTags);
         }
-
-        private void FrmMain_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            tssStatus.Text = "Saving settings and caching data...";
-            Application.DoEvents();
-            s_settings.Serialize(SettingsFile);
-            if (_loadingComplete)
-            {
-                s_issueManager.SerializeCacheDataToFolder(CacheFolder);
-            }
-        }
         #endregion
 
         private async void BtnRefreshEpics_Click(object sender, EventArgs e)
         {
-            _loadingComplete = false;
             //clear the repositories from the cache and then force a refresh
             foreach (string item in s_settings.Repositories)
             {
@@ -379,7 +365,6 @@ namespace IssueCreator
                 s_issueManager.RemoveEpicFromCache(owner, repo);
             }
             await UpdateEpicListAsync();
-            _loadingComplete = true;
         }
 
         private void PreferencesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -398,7 +383,7 @@ namespace IssueCreator
                 if (s_issueManager == null)
                 {
                     // this will ensure the GH token is valid
-                    s_issueManager = IssueManager.Create(s_settings);
+                    s_issueManager = IssueManager.Create(s_settings, CacheFolder);
                 }
                 else
                 {
@@ -409,9 +394,14 @@ namespace IssueCreator
                     s_issueManager.RefreshGitHubToken(s_settings.GitHubToken);
                 }
 
+                // save the settings to disk
+                s_settings.Serialize(SettingsFile);
+
                 // refresh the page
                 LoadFormFromSettings();
             }
         }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e) => Close();
     }
 }
