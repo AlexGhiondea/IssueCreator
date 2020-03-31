@@ -20,9 +20,8 @@ namespace IssueCreator
     {
         private ZenHubClient _zenHubClient;
         private GitHubClient _githubClient;
-        private MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
-        private Dictionary<string, Type> _cacheEntries = new Dictionary<string, Type>(); //keeps track of the keys added to the cache
-        private string _cacheFolder;
+        private readonly MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
+        private readonly string _cacheFolder;
 
         public static IssueManager Create(Settings settings, string cacheFolder)
         {
@@ -67,9 +66,9 @@ namespace IssueCreator
             }
         }
 
-        public async Task<List<IssueMilestone>> GetMilestonesAsync(string owner, string repo)
+        public async Task<IEnumerable<IssueMilestone>> GetMilestonesAsync(string owner, string repo)
         {
-            List<IssueMilestone> milestones = await GetValueFromCache(StringTemplate.Milestones(owner, repo), async () => IssueMilestone.FromMilestoneList(await _githubClient.Issue.Milestone.GetAllForRepository(owner, repo)));
+            IEnumerable<IssueMilestone> milestones = await GetValueFromCache(StringTemplate.Milestones(owner, repo), async () => IssueMilestone.FromMilestoneList(await _githubClient.Issue.Milestone.GetAllForRepository(owner, repo)));
 
             return milestones;
         }
@@ -279,17 +278,17 @@ namespace IssueCreator
             TResult valueToCache = await getValue();
 
             // save the object to disk
-            SerializeObjectToDisk(key, valueToCache);
+            await SerializeObjectToDiskAsync(key, valueToCache);
 
             _cache.Set(key, valueToCache, cacheDuration);
 
             return valueToCache;
         }
-        private void SerializeObjectToDisk<TValue>(string key, TValue value)
+        private async Task SerializeObjectToDiskAsync<TValue>(string key, TValue value)
         {
             using (StreamWriter sw = new StreamWriter($"{Path.Combine(_cacheFolder, key)}.json"))
             {
-                sw.Write(JsonSerializer.Serialize(value));
+                await sw.WriteAsync(JsonSerializer.Serialize(value));
             }
         }
 
@@ -317,13 +316,11 @@ namespace IssueCreator
         internal void RemoveRepoFromCache(string owner, string repo)
         {
             _cache.Remove(StringTemplate.Repo(owner, repo));
-            _cacheEntries.Remove(StringTemplate.Repo(owner, repo));
         }
 
         internal void RemoveEpicFromCache(string owner, string repo)
         {
             _cache.Remove(StringTemplate.Epic(owner, repo));
-            _cacheEntries.Remove(StringTemplate.Epic(owner, repo));
         }
 
         internal static class StringTemplate

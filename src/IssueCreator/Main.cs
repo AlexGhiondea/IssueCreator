@@ -203,7 +203,7 @@ namespace IssueCreator
         {
             (string owner, string repository) = GetRepoOwner();
 
-            List<IssueMilestone> milestones = await s_issueManager.GetMilestonesAsync(owner, repository);
+            IEnumerable<IssueMilestone> milestones = await s_issueManager.GetMilestonesAsync(owner, repository);
 
             cboMilestones.Enabled = false;
 
