@@ -19,9 +19,25 @@ namespace IssueCreator
         private static IssueManager s_issueManager;
         private static IssueToCreate s_previouslyCreatedIssue;
 
-        private static string SettingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "IssueCreator");
-        private static string CacheFolder = Path.Combine(SettingsFolder, "Cache");
-        private static string SettingsFile = Path.Combine(SettingsFolder, "issueCreator.settings");
+        private static readonly string SettingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "IssueCreator");
+        private static readonly string SettingsFile = Path.Combine(SettingsFolder, "issueCreator.settings");
+        private static string CacheFolder
+        {
+            get
+            {
+                // if this is deployed via Click-once, use the data folder
+                if (ApplicationDeployment.IsNetworkDeployed)
+                {
+                    return Path.Combine(ApplicationDeployment.CurrentDeployment.DataDirectory, "Cache");
+                }
+                else
+                {
+                    // otherwise, use a different folder.
+                    return Path.Combine(SettingsFolder, "Cache");
+                }
+            }
+        }
+
 
         public frmMain()
         {
