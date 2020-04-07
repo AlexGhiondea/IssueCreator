@@ -1,4 +1,12 @@
-﻿[*.cs]
+﻿root = true
+
+[*]
+
+indent_size = 4
+indent_style = space
+insert_final_newline = true
+
+[*.cs]
 
 # IDE0008: Use explicit type
 csharp_style_var_elsewhere = false:warning
@@ -8,3 +16,11 @@ csharp_style_var_for_built_in_types = false:warning
 
 # IDE0008: Use explicit type
 csharp_style_var_when_type_is_apparent = false:warning
+
+[*.{config,csproj,resx,xml}]
+
+indent_size = 2
+
+[*.yml]
+
+indent_size = 2
