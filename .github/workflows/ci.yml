@@ -1,0 +1,31 @@
+name: ci
+
+on:
+- pull_request
+- push
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v1
+      with:
+        nuget-version: latest
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.0.0
+
+    - name: Restore
+      run: nuget restore ./src/IssueCreator.sln
+
+    - name: Build
+      run: msbuild ./src/IssueCreator.sln /p:Configuration=Release
+
+    # - name: Deploy
+    #   if: ${{ github.event_name == 'push' }}
+    #   run: >
+    #     echo TODO: Push files to container
