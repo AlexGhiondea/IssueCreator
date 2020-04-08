@@ -1,7 +1,6 @@
 ﻿using IssueCreator.Models;
 using IssueCreator.Controls;
 using IssueCreator.Dialogs;
-using Octokit;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -10,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Net.Http;
 
 namespace IssueCreator
 {
@@ -19,25 +19,56 @@ namespace IssueCreator
         private static IssueManager s_issueManager;
         private static IssueToCreate s_previouslyCreatedIssue;
 
-        private static string SettingsFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "issueCreator.settings");
+        private static readonly string SettingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "IssueCreator");
+        private static readonly string SettingsFile = Path.Combine(SettingsFolder, "issueCreator.settings");
+        private static string CacheFolder
+        {
+            get
+            {
+                // if this is deployed via Click-once, use the data folder
+                if (ApplicationDeployment.IsNetworkDeployed)
+                {
+                    return Path.Combine(ApplicationDeployment.CurrentDeployment.DataDirectory, "Cache");
+                }
+                else
+                {
+                    // otherwise, use a different folder.
+                    return Path.Combine(SettingsFolder, "Cache");
+                }
+            }
+        }
+
 
         public frmMain()
         {
             InitializeComponent();
+
+            if (!Directory.Exists(SettingsFolder))
+            {
+                Directory.CreateDirectory(SettingsFolder);
+            }
+
+            if (!Directory.Exists(CacheFolder))
+            {
+                Directory.CreateDirectory(CacheFolder);
+            }
         }
 
+#pragma warning disable 1998 //We want a fire and forget async method here.
         private async void FrmMain_Load(object sender, EventArgs e)
         {
+#pragma warning restore 1998
+
             s_settings = Settings.Deserialize(SettingsFile);
 
-            s_issueManager = IssueManager.Create(s_settings);
+            s_issueManager = IssueManager.Create(s_settings, CacheFolder);
 
             // if we don't have a github token, prompt settings.
             if (s_issueManager == null)
             {
                 ShowPreferencesDialog();
 
-                s_issueManager = IssueManager.Create(s_settings);
+                s_issueManager = IssueManager.Create(s_settings, CacheFolder);
 
                 if (s_issueManager == null)
                 {
@@ -61,7 +92,7 @@ namespace IssueCreator
             }
         }
 
-        private void LoadFormFromSettings()
+        private async void LoadFormFromSettings()
         {
             if (s_issueManager == null)
             {
@@ -74,13 +105,15 @@ namespace IssueCreator
                 cboAvailableRepos.Items.Add(item);
             }
 
-            if (!string.IsNullOrEmpty(s_settings.DefaultTitle))
+            if (s_settings.DefaultTitle != null)
             {
                 txtIssueTitle.Text = s_settings.DefaultTitle;
             }
 
+            s_issueManager.DeserializeCacheDataFromFolder(CacheFolder);
+
             // Start populating the epics from ZenHub
-            UpdateEpicListAsync();
+            await UpdateEpicListAsync();
         }
 
         private async void BtnCreateIssue_Click(object sender, EventArgs e)
@@ -103,7 +136,7 @@ namespace IssueCreator
                 Description = txtDescription.Text,
                 Labels = selectedLabels,
                 Epic = (cboEpics.SelectedItem as IssueDescription),
-                Milestone = (cboMilestones.SelectedItem as IssueCreator.Models.IssueMilestone),
+                Milestone = (cboMilestones.SelectedItem as IssueMilestone),
                 Estimate = txtEstimate.Text,
                 CreateAsEpic = chkMakeEpic.Checked
             };
@@ -145,7 +178,7 @@ namespace IssueCreator
             UpdateAssigneesListAsync();
         }
 
-        private async void UpdateEpicListAsync()
+        private async Task UpdateEpicListAsync()
         {
             if (string.IsNullOrEmpty(s_settings.ZenHubToken))
             {
@@ -162,7 +195,7 @@ namespace IssueCreator
 
             // add just the open issues
             cboEpics.Items.Clear();
-            cboEpics.Items.AddRange(issues.Where((issue) => issue.Issue.State == ItemState.Open).ToArray());
+            cboEpics.Items.AddRange(issues.Where((issue) => StringComparer.OrdinalIgnoreCase.Equals(issue.Issue.State, Octokit.ItemState.Open.ToString())).ToArray());
 
             preferencesToolStripMenuItem.Enabled = true;
             cboEpics.Enabled = true;
@@ -186,7 +219,7 @@ namespace IssueCreator
         {
             (string owner, string repository) = GetRepoOwner();
 
-            IReadOnlyList<Octokit.Milestone> milestones = await s_issueManager.GetMilestonesAsync(owner, repository);
+            IEnumerable<IssueMilestone> milestones = await s_issueManager.GetMilestonesAsync(owner, repository);
 
             cboMilestones.Enabled = false;
 
@@ -195,9 +228,9 @@ namespace IssueCreator
             IssueMilestone newMilestoneInUI = null;
             cboMilestones.Items.Clear();
 
-            foreach (Milestone item in milestones)
+            foreach (IssueMilestone item in milestones)
             {
-                IssueMilestone newMilestone = new IssueMilestone(item);
+                IssueMilestone newMilestone = item;
                 cboMilestones.Items.Add(newMilestone);
 
                 // if a milestone was selected previously and we did have a milestone in the new repo that has the same title
@@ -223,7 +256,7 @@ namespace IssueCreator
         {
             (string owner, string repository) = GetRepoOwner();
 
-            IReadOnlyList<Octokit.Label> labels = await s_issueManager.GetLabelsAsync(owner, repository);
+            List<RepoLabel> labels = await s_issueManager.GetLabelsAsync(owner, repository);
 
             if (labels == null)
             {
@@ -242,7 +275,7 @@ namespace IssueCreator
             lstAvailableTags.Items.Clear();
             lstSelectedTags.Items.Clear();
 
-            foreach (Octokit.Label item in labels)
+            foreach (RepoLabel item in labels)
             {
                 if (inSelectedList.Contains(item.Name))
                 {
@@ -253,7 +286,6 @@ namespace IssueCreator
                     lstAvailableTags.Items.Add(item.Name);
                 }
             }
-
         }
 
         private IEnumerable<string> GetItemsAsList(ListBox lstSelectedTags)
@@ -284,10 +316,10 @@ namespace IssueCreator
 
             cboAssignees.Enabled = false;
 
-            IReadOnlyList<Octokit.RepositoryContributor> contributors = await s_issueManager.GetContributorsAsync(owner, repo);
+            List<Models.GitHubContributor> contributors = await s_issueManager.GetContributorsAsync(owner, repo);
 
             cboAssignees.Items.Clear();
-            foreach (RepositoryContributor item in contributors)
+            foreach (Models.GitHubContributor item in contributors)
             {
                 cboAssignees.Items.Add(item.Login);
             }
@@ -338,24 +370,17 @@ namespace IssueCreator
         {
             MoveItem(lstSelectedTags, lstAvailableTags);
         }
-
-        private void FrmMain_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            s_settings.Serialize(SettingsFile);
-        }
         #endregion
 
-        private void BtnRefreshEpics_Click(object sender, EventArgs e)
+        private async void BtnRefreshEpics_Click(object sender, EventArgs e)
         {
             //clear the repositories from the cache and then force a refresh
-
             foreach (string item in s_settings.Repositories)
             {
                 (string owner, string repo) = GetOwnerAndRepoFromString(item);
                 s_issueManager.RemoveEpicFromCache(owner, repo);
             }
-
-            UpdateEpicListAsync();
+            await UpdateEpicListAsync();
         }
 
         private void PreferencesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -374,7 +399,7 @@ namespace IssueCreator
                 if (s_issueManager == null)
                 {
                     // this will ensure the GH token is valid
-                    s_issueManager = IssueManager.Create(s_settings);
+                    s_issueManager = IssueManager.Create(s_settings, CacheFolder);
                 }
                 else
                 {
@@ -385,9 +410,14 @@ namespace IssueCreator
                     s_issueManager.RefreshGitHubToken(s_settings.GitHubToken);
                 }
 
+                // save the settings to disk
+                s_settings.Serialize(SettingsFile);
+
                 // refresh the page
                 LoadFormFromSettings();
             }
         }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e) => Close();
     }
 }

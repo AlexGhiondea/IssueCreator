@@ -33,16 +33,13 @@ namespace IssueCreator
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             this.label1 = new System.Windows.Forms.Label();
-            this.txtIssueTitle = new IssueCreator.Controls.TextBoxEx();
             this.label2 = new System.Windows.Forms.Label();
             this.cboAvailableRepos = new System.Windows.Forms.ComboBox();
             this.label3 = new System.Windows.Forms.Label();
-            this.txtDescription = new IssueCreator.Controls.TextBoxEx();
             this.btnAddTag = new System.Windows.Forms.Button();
             this.label4 = new System.Windows.Forms.Label();
             this.btnRemoveTag = new System.Windows.Forms.Button();
             this.label5 = new System.Windows.Forms.Label();
-            this.cboAssignees = new IssueCreator.Controls.ComboBoxWithSearch();
             this.btnCreateIssue = new System.Windows.Forms.Button();
             this.label6 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
@@ -54,14 +51,19 @@ namespace IssueCreator
             this.preferencesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.lblEpic = new System.Windows.Forms.Label();
             this.btnRefreshEpics = new System.Windows.Forms.Button();
-            this.txtEstimate = new IssueCreator.Controls.TextBoxEx();
             this.label8 = new System.Windows.Forms.Label();
-            this.cboEpics = new IssueCreator.Controls.ComboBoxWithSearch();
-            this.lstAvailableTags = new IssueCreator.Controls.ListBoxWithSearch();
-            this.lstSelectedTags = new IssueCreator.Controls.ListBoxWithSearch();
             this.chkMakeEpic = new System.Windows.Forms.CheckBox();
             this.label9 = new System.Windows.Forms.Label();
             this.cboMilestones = new IssueCreator.Controls.ComboBoxWithSearch();
+            this.txtEstimate = new IssueCreator.Controls.TextBoxEx();
+            this.cboEpics = new IssueCreator.Controls.ComboBoxWithSearch();
+            this.lstAvailableTags = new IssueCreator.Controls.ListBoxWithSearch();
+            this.cboAssignees = new IssueCreator.Controls.ComboBoxWithSearch();
+            this.lstSelectedTags = new IssueCreator.Controls.ListBoxWithSearch();
+            this.txtDescription = new IssueCreator.Controls.TextBoxEx();
+            this.txtIssueTitle = new IssueCreator.Controls.TextBoxEx();
+            this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -75,16 +77,6 @@ namespace IssueCreator
             this.label1.Size = new System.Drawing.Size(36, 18);
             this.label1.TabIndex = 0;
             this.label1.Text = "Title";
-            // 
-            // txtIssueTitle
-            // 
-            this.txtIssueTitle.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtIssueTitle.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtIssueTitle.Location = new System.Drawing.Point(93, 108);
-            this.txtIssueTitle.Name = "txtIssueTitle";
-            this.txtIssueTitle.Size = new System.Drawing.Size(497, 26);
-            this.txtIssueTitle.TabIndex = 3;
             // 
             // label2
             // 
@@ -119,19 +111,6 @@ namespace IssueCreator
             this.label3.Size = new System.Drawing.Size(78, 18);
             this.label3.TabIndex = 4;
             this.label3.Text = "Description";
-            // 
-            // txtDescription
-            // 
-            this.txtDescription.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtDescription.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            this.txtDescription.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtDescription.Location = new System.Drawing.Point(93, 140);
-            this.txtDescription.Multiline = true;
-            this.txtDescription.Name = "txtDescription";
-            this.txtDescription.Size = new System.Drawing.Size(497, 151);
-            this.txtDescription.TabIndex = 4;
             // 
             // btnAddTag
             // 
@@ -179,20 +158,6 @@ namespace IssueCreator
             this.label5.Size = new System.Drawing.Size(80, 18);
             this.label5.TabIndex = 12;
             this.label5.Text = "Assigned to";
-            // 
-            // cboAssignees
-            // 
-            this.cboAssignees.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.cboAssignees.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
-            this.cboAssignees.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            this.cboAssignees.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cboAssignees.FormattingEnabled = true;
-            this.cboAssignees.Location = new System.Drawing.Point(93, 76);
-            this.cboAssignees.Name = "cboAssignees";
-            this.cboAssignees.Size = new System.Drawing.Size(497, 26);
-            this.cboAssignees.Sorted = true;
-            this.cboAssignees.TabIndex = 2;
             // 
             // btnCreateIssue
             // 
@@ -253,6 +218,7 @@ namespace IssueCreator
             // menuStrip1
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.fileToolStripMenuItem,
             this.editToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
@@ -298,15 +264,6 @@ namespace IssueCreator
             this.btnRefreshEpics.UseVisualStyleBackColor = true;
             this.btnRefreshEpics.Click += new System.EventHandler(this.BtnRefreshEpics_Click);
             // 
-            // txtEstimate
-            // 
-            this.txtEstimate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.txtEstimate.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtEstimate.Location = new System.Drawing.Point(93, 472);
-            this.txtEstimate.Name = "txtEstimate";
-            this.txtEstimate.Size = new System.Drawing.Size(63, 26);
-            this.txtEstimate.TabIndex = 24;
-            // 
             // label8
             // 
             this.label8.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
@@ -318,51 +275,6 @@ namespace IssueCreator
             this.label8.Size = new System.Drawing.Size(61, 18);
             this.label8.TabIndex = 23;
             this.label8.Text = "Estimate";
-            // 
-            // cboEpics
-            // 
-            this.cboEpics.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.cboEpics.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
-            this.cboEpics.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            this.cboEpics.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cboEpics.FormattingEnabled = true;
-            this.cboEpics.IntegralHeight = false;
-            this.cboEpics.Location = new System.Drawing.Point(93, 440);
-            this.cboEpics.Name = "cboEpics";
-            this.cboEpics.Size = new System.Drawing.Size(400, 26);
-            this.cboEpics.Sorted = true;
-            this.cboEpics.TabIndex = 7;
-            // 
-            // lstAvailableTags
-            // 
-            this.lstAvailableTags.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.lstAvailableTags.Font = new System.Drawing.Font("Calibri", 11.25F);
-            this.lstAvailableTags.FormattingEnabled = true;
-            this.lstAvailableTags.IntegralHeight = false;
-            this.lstAvailableTags.ItemHeight = 18;
-            this.lstAvailableTags.Location = new System.Drawing.Point(93, 320);
-            this.lstAvailableTags.Name = "lstAvailableTags";
-            this.lstAvailableTags.Size = new System.Drawing.Size(226, 114);
-            this.lstAvailableTags.Sorted = true;
-            this.lstAvailableTags.TabIndex = 5;
-            this.lstAvailableTags.KeyUp += new System.Windows.Forms.KeyEventHandler(this.LstAvailableTags_KeyUp);
-            this.lstAvailableTags.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.LstAvailableTags_MouseDoubleClick);
-            // 
-            // lstSelectedTags
-            // 
-            this.lstSelectedTags.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.lstSelectedTags.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lstSelectedTags.FormattingEnabled = true;
-            this.lstSelectedTags.IntegralHeight = false;
-            this.lstSelectedTags.ItemHeight = 18;
-            this.lstSelectedTags.Location = new System.Drawing.Point(370, 320);
-            this.lstSelectedTags.Name = "lstSelectedTags";
-            this.lstSelectedTags.Size = new System.Drawing.Size(220, 114);
-            this.lstSelectedTags.Sorted = true;
-            this.lstSelectedTags.TabIndex = 6;
-            this.lstSelectedTags.KeyUp += new System.Windows.Forms.KeyEventHandler(this.LstSelectedTags_KeyUp);
-            this.lstSelectedTags.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.LstSelectedTags_MouseDoubleClick);
             // 
             // chkMakeEpic
             // 
@@ -400,6 +312,112 @@ namespace IssueCreator
             this.cboMilestones.Sorted = true;
             this.cboMilestones.TabIndex = 27;
             // 
+            // txtEstimate
+            // 
+            this.txtEstimate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.txtEstimate.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtEstimate.Location = new System.Drawing.Point(93, 472);
+            this.txtEstimate.Name = "txtEstimate";
+            this.txtEstimate.Size = new System.Drawing.Size(63, 26);
+            this.txtEstimate.TabIndex = 24;
+            // 
+            // cboEpics
+            // 
+            this.cboEpics.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.cboEpics.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.cboEpics.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            this.cboEpics.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cboEpics.FormattingEnabled = true;
+            this.cboEpics.IntegralHeight = false;
+            this.cboEpics.Location = new System.Drawing.Point(93, 440);
+            this.cboEpics.Name = "cboEpics";
+            this.cboEpics.Size = new System.Drawing.Size(400, 26);
+            this.cboEpics.Sorted = true;
+            this.cboEpics.TabIndex = 7;
+            // 
+            // lstAvailableTags
+            // 
+            this.lstAvailableTags.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.lstAvailableTags.Font = new System.Drawing.Font("Calibri", 11.25F);
+            this.lstAvailableTags.FormattingEnabled = true;
+            this.lstAvailableTags.IntegralHeight = false;
+            this.lstAvailableTags.ItemHeight = 18;
+            this.lstAvailableTags.Location = new System.Drawing.Point(93, 320);
+            this.lstAvailableTags.Name = "lstAvailableTags";
+            this.lstAvailableTags.Size = new System.Drawing.Size(226, 114);
+            this.lstAvailableTags.Sorted = true;
+            this.lstAvailableTags.TabIndex = 5;
+            this.lstAvailableTags.KeyUp += new System.Windows.Forms.KeyEventHandler(this.LstAvailableTags_KeyUp);
+            this.lstAvailableTags.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.LstAvailableTags_MouseDoubleClick);
+            // 
+            // cboAssignees
+            // 
+            this.cboAssignees.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.cboAssignees.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.cboAssignees.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            this.cboAssignees.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cboAssignees.FormattingEnabled = true;
+            this.cboAssignees.Location = new System.Drawing.Point(93, 76);
+            this.cboAssignees.Name = "cboAssignees";
+            this.cboAssignees.Size = new System.Drawing.Size(497, 26);
+            this.cboAssignees.Sorted = true;
+            this.cboAssignees.TabIndex = 2;
+            // 
+            // lstSelectedTags
+            // 
+            this.lstSelectedTags.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.lstSelectedTags.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lstSelectedTags.FormattingEnabled = true;
+            this.lstSelectedTags.IntegralHeight = false;
+            this.lstSelectedTags.ItemHeight = 18;
+            this.lstSelectedTags.Location = new System.Drawing.Point(370, 320);
+            this.lstSelectedTags.Name = "lstSelectedTags";
+            this.lstSelectedTags.Size = new System.Drawing.Size(220, 114);
+            this.lstSelectedTags.Sorted = true;
+            this.lstSelectedTags.TabIndex = 6;
+            this.lstSelectedTags.KeyUp += new System.Windows.Forms.KeyEventHandler(this.LstSelectedTags_KeyUp);
+            this.lstSelectedTags.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.LstSelectedTags_MouseDoubleClick);
+            // 
+            // txtDescription
+            // 
+            this.txtDescription.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtDescription.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
+            this.txtDescription.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtDescription.Location = new System.Drawing.Point(93, 140);
+            this.txtDescription.Multiline = true;
+            this.txtDescription.Name = "txtDescription";
+            this.txtDescription.Size = new System.Drawing.Size(497, 151);
+            this.txtDescription.TabIndex = 4;
+            // 
+            // txtIssueTitle
+            // 
+            this.txtIssueTitle.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtIssueTitle.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtIssueTitle.Location = new System.Drawing.Point(93, 108);
+            this.txtIssueTitle.Name = "txtIssueTitle";
+            this.txtIssueTitle.Size = new System.Drawing.Size(497, 26);
+            this.txtIssueTitle.TabIndex = 3;
+            // 
+            // fileToolStripMenuItem
+            // 
+            this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.exitToolStripMenuItem});
+            this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
+            this.fileToolStripMenuItem.Text = "File";
+            // 
+            // exitToolStripMenuItem
+            // 
+            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.exitToolStripMenuItem.Text = "E&xit";
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -436,7 +454,6 @@ namespace IssueCreator
             this.MinimumSize = new System.Drawing.Size(621, 538);
             this.Name = "frmMain";
             this.Text = "Issue Creator";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FrmMain_FormClosing);
             this.Load += new System.EventHandler(this.FrmMain_Load);
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
@@ -479,6 +496,8 @@ namespace IssueCreator
         private CheckBox chkMakeEpic;
         private Label label9;
         private ComboBoxWithSearch cboMilestones;
+        private ToolStripMenuItem fileToolStripMenuItem;
+        private ToolStripMenuItem exitToolStripMenuItem;
     }
 }
 

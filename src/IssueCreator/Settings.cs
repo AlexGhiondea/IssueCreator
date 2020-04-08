@@ -12,6 +12,7 @@ namespace IssueCreator
         private static readonly byte[] s_entropy = { 23, 61, 24, 8, 77, 52 }; //the entropy
 
         public List<string> Repositories { get; set; } = new List<string>();
+
         public string ZenHubToken { get; set; } = string.Empty;
 
         public string GitHubToken { get; set; } = string.Empty;
