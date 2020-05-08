@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using ZenHub;
 using ZenHub.Models;
 
@@ -92,8 +93,8 @@ namespace IssueCreator
             {
                 //create an issue with just the number and repository set
                 // The only 2 parameters that need to be specified are the issueNumber and the repository.
-                Issue issue = new Issue(default, default,default, default, 
-                    number: issueNumber, default, default, default, default, default, default, default, default, default, default, default, default, default, default,default, default, default, 
+                Issue issue = new Issue(default, default, default, default,
+                    number: issueNumber, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default,
                     repository: new Repository(repoIdIssue), default);
                 await _zenHubClient.GetEpicClient(repoId, epicNumber).AddIssuesAsync(new[] { issue });
                 return true;
@@ -104,17 +105,33 @@ namespace IssueCreator
             }
         }
 
-        public async Task SetIssueEstimateAsync(long repoId, int issueNumber, int estimate)
+        public async Task<bool> SetIssueEstimateAsync(long repoId, int issueNumber, int estimate)
         {
-            if (estimate > 0)
+            try
             {
-                await _zenHubClient.GetIssueClient(repoId, issueNumber).SetEstimateAsync(estimate);
+                if (estimate > 0)
+                {
+                    await _zenHubClient.GetIssueClient(repoId, issueNumber).SetEstimateAsync(estimate);
+                }
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
 
-        public async Task ConvertToEpicAsync(long repoId, int issueNumber)
+        public async Task<bool> ConvertToEpicAsync(long repoId, int issueNumber)
         {
-            await _zenHubClient.GetIssueClient(repoId, issueNumber).ConvertToEpicAsync(Enumerable.Empty<Issue>());
+            try
+            {
+                await _zenHubClient.GetIssueClient(repoId, issueNumber).ConvertToEpicAsync(Enumerable.Empty<Issue>());
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public async Task<Issue> CreateIssueAsync(string owner, string repo, string title, string description, string assignedTo, List<string> labels, int? milestone = null)
@@ -184,19 +201,31 @@ namespace IssueCreator
                 // assign the epic, if one is selected
                 if (issueToCreate.Epic != null)
                 {
-                    await AddIssueToEpicAsync(issueToCreate.Epic.Repo.Id, issueToCreate.Epic.Issue.Number, repoFromGH.Id, createdIssue.Number);
+                    bool result = await AddIssueToEpicAsync(issueToCreate.Epic.Repo.Id, issueToCreate.Epic.Issue.Number, repoFromGH.Id, createdIssue.Number);
+                    if (!result)
+                    {
+                        MessageBox.Show("Cannot associate issue to epic");
+                    }
                 }
 
                 // set the estimate
                 if (estimate > 0)
                 {
-                    await SetIssueEstimateAsync(repoFromGH.Id, createdIssue.Number, estimate);
+                    bool result = await SetIssueEstimateAsync(repoFromGH.Id, createdIssue.Number, estimate);
+                    if (!result)
+                    {
+                        MessageBox.Show("Cannot set issue estimate");
+                    }
                 }
 
                 // Convert to Epic
                 if (issueToCreate.CreateAsEpic)
                 {
-                    await ConvertToEpicAsync(repoFromGH.Id, createdIssue.Number);
+                    bool result = await ConvertToEpicAsync(repoFromGH.Id, createdIssue.Number);
+                    if (!result)
+                    {
+                        MessageBox.Show("Cannot convert issue to epic");
+                    }
                 }
             }
             catch
