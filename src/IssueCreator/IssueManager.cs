@@ -91,7 +91,10 @@ namespace IssueCreator
             try
             {
                 //create an issue with just the number and repository set
-                Issue issue = new Issue(default, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default, issueNumber, default, default, new Repository(repoIdIssue), default);
+                // The only 2 parameters that need to be specified are the issueNumber and the repository.
+                Issue issue = new Issue(default, default,default, default, 
+                    number: issueNumber, default, default, default, default, default, default, default, default, default, default, default, default, default, default,default, default, default, 
+                    repository: new Repository(repoIdIssue), default);
                 await _zenHubClient.GetEpicClient(repoId, epicNumber).AddIssuesAsync(new[] { issue });
                 return true;
             }
