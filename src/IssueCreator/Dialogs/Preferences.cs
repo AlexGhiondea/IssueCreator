@@ -73,12 +73,12 @@ namespace IssueCreator.Dialogs
 
         private void BtnSave_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(NewSettings.ZenHubToken) && txtToken.Text != TokenProvided)
+            if (txtToken.Text != TokenProvided)
             {
                 NewSettings.ZenHubToken = txtToken.Text;
             }
 
-            if (string.IsNullOrEmpty(NewSettings.GitHubToken) && txtGitHubToken.Text != TokenProvided)
+            if (txtGitHubToken.Text != TokenProvided)
             {
                 NewSettings.GitHubToken = txtGitHubToken.Text;
             }
