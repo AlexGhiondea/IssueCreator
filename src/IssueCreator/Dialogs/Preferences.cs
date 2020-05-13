@@ -1,4 +1,6 @@
-﻿using System;
+﻿using IssueCreator.Logging;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Forms;
@@ -11,13 +13,16 @@ namespace IssueCreator.Dialogs
         private IssueManager _issueManager;
         public Settings NewSettings { get; }
         private string _settingsFile;
+        private FileLogger _logger;
 
         public Preferences()
         {
             InitializeComponent();
         }
-        public Preferences(Settings settings, IssueManager issueManager, string settingsFile) : this()
+
+        public Preferences(Settings settings, IssueManager issueManager, string settingsFile, FileLogger logger) : this()
         {
+            _logger = logger;
             NewSettings = settings;
             _issueManager = issueManager;
             _settingsFile = settingsFile;
@@ -85,7 +90,7 @@ namespace IssueCreator.Dialogs
 
             NewSettings.DefaultTitle = txtDefaultTitle.Text;
 
-            NewSettings.Serialize(_settingsFile);
+            NewSettings.Serialize(_settingsFile, _logger);
             DialogResult = DialogResult.OK;
             Close();
         }

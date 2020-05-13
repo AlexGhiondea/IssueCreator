@@ -75,8 +75,9 @@ namespace IssueCreator
         {
 #pragma warning restore 1998
 
-            s_settings = Settings.Deserialize(SettingsFile);
-            s_logger.Log("Settings file deserialized");
+            using IDisposable scope = s_logger.CreateScope("Loading main form");
+
+            s_settings = Settings.Deserialize(SettingsFile, s_logger);
 
             s_issueManager = IssueManager.Create(s_settings, CacheFolder, s_logger);
 
@@ -199,7 +200,7 @@ namespace IssueCreator
 
         private async Task UpdateEpicListAsync()
         {
-            s_logger.Log("Updating the list of epics");
+            using IDisposable scope = s_logger.CreateScope("Updating the list of epics");
             if (string.IsNullOrEmpty(s_settings.ZenHubToken))
             {
                 return;
@@ -394,7 +395,7 @@ namespace IssueCreator
 
         private async void BtnRefreshEpics_Click(object sender, EventArgs e)
         {
-            s_logger.Log("Refresing the list of epics");
+            using IDisposable scope = s_logger.CreateScope("Refresing the list of epics");
 
             //clear the repositories from the cache and then force a refresh
             foreach (string item in s_settings.Repositories)
@@ -412,7 +413,8 @@ namespace IssueCreator
 
         private void ShowPreferencesDialog()
         {
-            Preferences p = new Preferences(s_settings.Clone(), s_issueManager, SettingsFile);
+            using IDisposable scope = s_logger.CreateScope("Show preferences dialog");
+            Preferences p = new Preferences(s_settings.Clone(), s_issueManager, SettingsFile, s_logger);
             if (p.ShowDialog() == DialogResult.OK)
             {
                 s_settings = p.NewSettings;
@@ -433,7 +435,7 @@ namespace IssueCreator
                 }
 
                 // save the settings to disk
-                s_settings.Serialize(SettingsFile);
+                s_settings.Serialize(SettingsFile, s_logger);
 
                 // refresh the page
                 LoadFormFromSettings();

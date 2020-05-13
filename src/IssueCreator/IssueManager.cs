@@ -26,7 +26,7 @@ namespace IssueCreator
 
         public static IssueManager Create(Settings settings, string cacheFolder, FileLogger fileLogger)
         {
-            fileLogger.Log($"Creating issue manager with cache folder: {cacheFolder}");
+            using IDisposable scope = fileLogger.CreateScope($"Creating issue manager with cache folder: {cacheFolder}");
             IssueManager manager = new IssueManager(cacheFolder, fileLogger);
             if (!manager.RefreshGitHubToken(settings.GitHubToken))
             {
@@ -46,13 +46,13 @@ namespace IssueCreator
 
         public void RefreshZenHubToken(string newToken)
         {
-            _fileLogger.Log("Refreshing ZenHub token");
+            using IDisposable scope = _fileLogger.CreateScope("Refreshing ZenHub token");
             _zenHubClient = new ZenHubClient(newToken);
         }
 
         public bool RefreshGitHubToken(string newToken)
         {
-            _fileLogger.Log("Refreshing GitHub token");
+            using IDisposable scope = _fileLogger.CreateScope("Refreshing GitHub token");
             try
             {
                 _githubClient = new GitHubClient(new ProductHeaderValue("IssueCreator"))
@@ -74,7 +74,7 @@ namespace IssueCreator
 
         public async Task<IEnumerable<IssueMilestone>> GetMilestonesAsync(string owner, string repo)
         {
-            _fileLogger.Log("Retrieving milestones");
+            using IDisposable scope = _fileLogger.CreateScope("Retrieving milestones");
             IEnumerable<IssueMilestone> milestones = await GetValueFromCache(StringTemplate.Milestones(owner, repo), async () => IssueMilestone.FromMilestoneList(await _githubClient.Issue.Milestone.GetAllForRepository(owner, repo)));
 
             return milestones;
@@ -82,7 +82,7 @@ namespace IssueCreator
 
         public async Task<List<RepoLabel>> GetLabelsAsync(string owner, string repo)
         {
-            _fileLogger.Log("Retrieving labels");
+            using IDisposable scope = _fileLogger.CreateScope("Retrieving labels");
             List<RepoLabel> labels = await GetValueFromCache(StringTemplate.Labels(owner, repo), async () => RepoLabel.FromLabelList(await _githubClient.Issue.Labels.GetAllForRepository(owner, repo)));
 
             return labels;
@@ -90,7 +90,7 @@ namespace IssueCreator
 
         public async Task<List<GitHubContributor>> GetContributorsAsync(string owner, string repo)
         {
-            _fileLogger.Log("Retrieving contributors");
+            using IDisposable scope = _fileLogger.CreateScope("Retrieving contributors");
 
             List<GitHubContributor> contributors = await GetValueFromCache(StringTemplate.Contributors(owner, repo), async () => GitHubContributor.FromContributorsList(await _githubClient.Repository.GetAllContributors(owner, repo)));
             return contributors;
@@ -98,7 +98,7 @@ namespace IssueCreator
 
         public async Task<bool> AddIssueToEpicAsync(long repoId, int epicNumber, long repoIdIssue, int issueNumber)
         {
-            _fileLogger.Log("Adding issue to epic");
+            using IDisposable scope = _fileLogger.CreateScope("Adding issue to epic");
             try
             {
                 //create an issue with just the number and repository set
@@ -118,7 +118,7 @@ namespace IssueCreator
 
         public async Task<bool> SetIssueEstimateAsync(long repoId, int issueNumber, int estimate)
         {
-            _fileLogger.Log($"Setting issue estimate to {estimate}");
+            using IDisposable scope = _fileLogger.CreateScope($"Setting issue estimate to {estimate}");
 
             try
             {
@@ -137,7 +137,7 @@ namespace IssueCreator
 
         public async Task<bool> ConvertToEpicAsync(long repoId, int issueNumber)
         {
-            _fileLogger.Log("Convert issue to epic");
+            using IDisposable scope = _fileLogger.CreateScope("Convert issue to epic");
 
             try
             {
@@ -178,7 +178,7 @@ namespace IssueCreator
 
         internal async Task<(bool, string)> TryCreateNewIssueAsync(IssueToCreate issueToCreate)
         {
-            _fileLogger.Log("Creating issue");
+            using IDisposable scope = _fileLogger.CreateScope("Creating issue");
 
             bool validEstimate = false;
             int estimate = 0;
@@ -342,7 +342,7 @@ namespace IssueCreator
         }
         private async Task SerializeObjectToDiskAsync<TValue>(string key, TValue value)
         {
-            _fileLogger.Log($"Saving data to cache {key}");
+            using IDisposable scope = _fileLogger.CreateScope($"Saving data to cache {key}");
 
             using (StreamWriter sw = new StreamWriter($"{Path.Combine(_cacheFolder, key)}.json"))
             {
@@ -352,7 +352,7 @@ namespace IssueCreator
 
         public bool DeserializeCacheDataFromFolder(string folder)
         {
-            _fileLogger.Log("Reading cache data from disk.");
+            using IDisposable scope = _fileLogger.CreateScope("Reading cache data from disk.");
             bool deserializedData = false;
             foreach (string file in Directory.GetFiles(folder, "*.json"))
             {

@@ -20,11 +20,16 @@ namespace IssueCreator.Logging
             _logPath = logPath;
         }
 
-        public void Log(string message)
+        public LogScope CreateScope(string message)
+        {
+            return new LogScope(this, message);
+        }
+
+        internal void Log(string message)
         {
             lock (_logPath)
             {
-                File.AppendAllText(_logPath, $"{DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()}: {message} {Environment.NewLine}");
+                File.AppendAllText(_logPath, $"{DateTime.Now:s}: {message} {Environment.NewLine}");
             }
         }
     }
