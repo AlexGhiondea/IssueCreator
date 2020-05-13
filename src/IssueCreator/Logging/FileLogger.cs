@@ -10,11 +10,11 @@ namespace IssueCreator.Logging
     public class FileLogger
     {
         private string _logPath;
-        public FileLogger(string logPath = "")
+        public FileLogger(string logPath)
         {
             if (string.IsNullOrEmpty(logPath))
             {
-                logPath = "log.txt";
+                throw new ArgumentNullException(nameof(logPath));
             }
 
             _logPath = logPath;
