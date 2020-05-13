@@ -1,7 +1,6 @@
-﻿using Azure;
+﻿using IssueCreator.Logging;
 using IssueCreator.Models;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
 using Octokit;
 using System;
 using System.Collections.Concurrent;
@@ -21,12 +20,14 @@ namespace IssueCreator
     {
         private ZenHubClient _zenHubClient;
         private GitHubClient _githubClient;
+        private FileLogger _fileLogger;
         private readonly MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
         private readonly string _cacheFolder;
 
-        public static IssueManager Create(Settings settings, string cacheFolder)
+        public static IssueManager Create(Settings settings, string cacheFolder, FileLogger fileLogger)
         {
-            IssueManager manager = new IssueManager(cacheFolder);
+            fileLogger.Log($"Creating issue manager with cache folder: {cacheFolder}");
+            IssueManager manager = new IssueManager(cacheFolder, fileLogger);
             if (!manager.RefreshGitHubToken(settings.GitHubToken))
             {
                 return null;
@@ -37,18 +38,21 @@ namespace IssueCreator
             return manager;
         }
 
-        private IssueManager(string _cache)
+        private IssueManager(string cache, FileLogger logger)
         {
-            _cacheFolder = _cache;
+            _cacheFolder = cache;
+            _fileLogger = logger;
         }
 
         public void RefreshZenHubToken(string newToken)
         {
+            _fileLogger.Log("Refreshing ZenHub token");
             _zenHubClient = new ZenHubClient(newToken);
         }
 
         public bool RefreshGitHubToken(string newToken)
         {
+            _fileLogger.Log("Refreshing GitHub token");
             try
             {
                 _githubClient = new GitHubClient(new ProductHeaderValue("IssueCreator"))
@@ -60,8 +64,9 @@ namespace IssueCreator
                 User user = _githubClient.User.Current().GetAwaiter().GetResult();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                _fileLogger.Log(ex.ToString());
                 _githubClient = null;
                 return false;
             }
@@ -69,6 +74,7 @@ namespace IssueCreator
 
         public async Task<IEnumerable<IssueMilestone>> GetMilestonesAsync(string owner, string repo)
         {
+            _fileLogger.Log("Retrieving milestones");
             IEnumerable<IssueMilestone> milestones = await GetValueFromCache(StringTemplate.Milestones(owner, repo), async () => IssueMilestone.FromMilestoneList(await _githubClient.Issue.Milestone.GetAllForRepository(owner, repo)));
 
             return milestones;
@@ -76,6 +82,7 @@ namespace IssueCreator
 
         public async Task<List<RepoLabel>> GetLabelsAsync(string owner, string repo)
         {
+            _fileLogger.Log("Retrieving labels");
             List<RepoLabel> labels = await GetValueFromCache(StringTemplate.Labels(owner, repo), async () => RepoLabel.FromLabelList(await _githubClient.Issue.Labels.GetAllForRepository(owner, repo)));
 
             return labels;
@@ -83,12 +90,15 @@ namespace IssueCreator
 
         public async Task<List<GitHubContributor>> GetContributorsAsync(string owner, string repo)
         {
+            _fileLogger.Log("Retrieving contributors");
+
             List<GitHubContributor> contributors = await GetValueFromCache(StringTemplate.Contributors(owner, repo), async () => GitHubContributor.FromContributorsList(await _githubClient.Repository.GetAllContributors(owner, repo)));
             return contributors;
         }
 
         public async Task<bool> AddIssueToEpicAsync(long repoId, int epicNumber, long repoIdIssue, int issueNumber)
         {
+            _fileLogger.Log("Adding issue to epic");
             try
             {
                 //create an issue with just the number and repository set
@@ -99,14 +109,17 @@ namespace IssueCreator
                 await _zenHubClient.GetEpicClient(repoId, epicNumber).AddIssuesAsync(new[] { issue });
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                _fileLogger.Log(ex.ToString());
                 return false;
             }
         }
 
         public async Task<bool> SetIssueEstimateAsync(long repoId, int issueNumber, int estimate)
         {
+            _fileLogger.Log($"Setting issue estimate to {estimate}");
+
             try
             {
                 if (estimate > 0)
@@ -115,26 +128,30 @@ namespace IssueCreator
                 }
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                _fileLogger.Log(ex.ToString());
                 return false;
             }
         }
 
         public async Task<bool> ConvertToEpicAsync(long repoId, int issueNumber)
         {
+            _fileLogger.Log("Convert issue to epic");
+
             try
             {
                 await _zenHubClient.GetIssueClient(repoId, issueNumber).ConvertToEpicAsync(Enumerable.Empty<Issue>());
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                _fileLogger.Log(ex.ToString());
                 return false;
             }
         }
 
-        public async Task<Issue> CreateIssueAsync(string owner, string repo, string title, string description, string assignedTo, List<string> labels, int? milestone = null)
+        private async Task<Issue> CreateIssueAsync(string owner, string repo, string title, string description, string assignedTo, List<string> labels, int? milestone = null)
         {
             NewIssue issue = new NewIssue(title);
 
@@ -161,6 +178,8 @@ namespace IssueCreator
 
         internal async Task<(bool, string)> TryCreateNewIssueAsync(IssueToCreate issueToCreate)
         {
+            _fileLogger.Log("Creating issue");
+
             bool validEstimate = false;
             int estimate = 0;
             if (string.IsNullOrEmpty(issueToCreate.Estimate))
@@ -190,8 +209,9 @@ namespace IssueCreator
                     issueToCreate.Labels,
                     issueToCreate.Milestone?.Number);
             }
-            catch
+            catch (Exception ex)
             {
+                _fileLogger.Log(ex.ToString());
                 return (false, "Could not create issue.");
             }
 
@@ -199,6 +219,7 @@ namespace IssueCreator
             {
                 RepositoryInfo repoFromGH = await GetRepositoryAsync(issueToCreate.Organization, issueToCreate.Repository);
                 // assign the epic, if one is selected
+
                 if (issueToCreate.Epic != null)
                 {
                     bool result = await AddIssueToEpicAsync(issueToCreate.Epic.Repo.Id, issueToCreate.Epic.Issue.Number, repoFromGH.Id, createdIssue.Number);
@@ -228,8 +249,9 @@ namespace IssueCreator
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                _fileLogger.Log(ex.ToString());
                 return (false, "Failed to create the epic. Please check the issue on the website.");
             }
 
@@ -263,6 +285,8 @@ namespace IssueCreator
                 tasks[count++] = Task.Run(async () =>
                 {
                     RepositoryInfo gitHubRepoObj = await GetRepositoryAsync(owner, repo);
+
+                    _fileLogger.Log($"Getting epics for repo {owner}\\{repo}");
 
                     EpicList epicList = await GetValueFromCache(StringTemplate.Epic(owner, repo), async () => (await _zenHubClient.GetRepositoryClient(gitHubRepoObj.Id).GetEpicsAsync()).Value, DateTimeOffset.Now.AddHours(1));
 
@@ -318,6 +342,8 @@ namespace IssueCreator
         }
         private async Task SerializeObjectToDiskAsync<TValue>(string key, TValue value)
         {
+            _fileLogger.Log($"Saving data to cache {key}");
+
             using (StreamWriter sw = new StreamWriter($"{Path.Combine(_cacheFolder, key)}.json"))
             {
                 await sw.WriteAsync(JsonSerializer.Serialize(value));
@@ -326,6 +352,7 @@ namespace IssueCreator
 
         public bool DeserializeCacheDataFromFolder(string folder)
         {
+            _fileLogger.Log("Reading cache data from disk.");
             bool deserializedData = false;
             foreach (string file in Directory.GetFiles(folder, "*.json"))
             {

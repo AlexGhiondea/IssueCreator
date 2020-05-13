@@ -10,6 +10,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Net.Http;
+using Octokit;
+using IssueCreator.Logging;
 
 namespace IssueCreator
 {
@@ -18,9 +20,11 @@ namespace IssueCreator
         private static Settings s_settings;
         private static IssueManager s_issueManager;
         private static IssueToCreate s_previouslyCreatedIssue;
+        private static FileLogger s_logger;
 
-        private static readonly string SettingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "IssueCreator");
-        private static readonly string SettingsFile = Path.Combine(SettingsFolder, "issueCreator.settings");
+        private static string SettingsFolder;
+        private static string SettingsFile;
+
         private static string CacheFolder
         {
             get
@@ -39,8 +43,20 @@ namespace IssueCreator
         }
 
 
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            s_logger.Log((e.ExceptionObject as Exception).ToString());
+        }
+
         public frmMain()
         {
+            SettingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "IssueCreator");
+            SettingsFile = Path.Combine(SettingsFolder, "issueCreator.settings");
+            s_logger = new FileLogger(Path.Combine(SettingsFolder, "issueCreator.log"));
+
+            s_logger.Log($"=====>>>>  IssueCreator started  <<<<=====");
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
             InitializeComponent();
 
             if (!Directory.Exists(SettingsFolder))
@@ -60,15 +76,17 @@ namespace IssueCreator
 #pragma warning restore 1998
 
             s_settings = Settings.Deserialize(SettingsFile);
+            s_logger.Log("Settings file deserialized");
 
-            s_issueManager = IssueManager.Create(s_settings, CacheFolder);
+            s_issueManager = IssueManager.Create(s_settings, CacheFolder, s_logger);
 
             // if we don't have a github token, prompt settings.
             if (s_issueManager == null)
             {
+                s_logger.Log("Opening preferences dialog");
                 ShowPreferencesDialog();
 
-                s_issueManager = IssueManager.Create(s_settings, CacheFolder);
+                s_issueManager = IssueManager.Create(s_settings, CacheFolder, s_logger);
 
                 if (s_issueManager == null)
                 {
@@ -78,6 +96,7 @@ namespace IssueCreator
             }
             else
             {
+                s_logger.Log("Loading form settings");
                 LoadFormFromSettings();
             }
 
@@ -180,6 +199,7 @@ namespace IssueCreator
 
         private async Task UpdateEpicListAsync()
         {
+            s_logger.Log("Updating the list of epics");
             if (string.IsNullOrEmpty(s_settings.ZenHubToken))
             {
                 return;
@@ -374,6 +394,8 @@ namespace IssueCreator
 
         private async void BtnRefreshEpics_Click(object sender, EventArgs e)
         {
+            s_logger.Log("Refresing the list of epics");
+
             //clear the repositories from the cache and then force a refresh
             foreach (string item in s_settings.Repositories)
             {
@@ -399,7 +421,7 @@ namespace IssueCreator
                 if (s_issueManager == null)
                 {
                     // this will ensure the GH token is valid
-                    s_issueManager = IssueManager.Create(s_settings, CacheFolder);
+                    s_issueManager = IssueManager.Create(s_settings, CacheFolder, s_logger);
                 }
                 else
                 {
