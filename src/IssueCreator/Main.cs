@@ -45,7 +45,7 @@ namespace IssueCreator
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            s_logger.Log((e.ExceptionObject as Exception).ToString());
+            s_logger.Log((e.ExceptionObject as Exception)?.ToString());
         }
 
         public frmMain()
