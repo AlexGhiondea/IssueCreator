@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IssueCreator.Logging;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
@@ -21,8 +22,9 @@ namespace IssueCreator
 
         public List<string> DefaultLabels { get; set; } = new List<string>();
 
-        public void Serialize(string file)
+        public void Serialize(string file, FileLogger log)
         {
+            using IDisposable scope = log.CreateScope("Serializing settings file");
             using (StreamWriter sw = new StreamWriter(file))
             {
                 Settings encrypted = EncryptSettings(this);
@@ -51,8 +53,9 @@ namespace IssueCreator
             return encrypted;
         }
 
-        public static Settings Deserialize(string file)
+        public static Settings Deserialize(string file, FileLogger log)
         {
+            using IDisposable scope = log.CreateScope("Deserializing settings file");
             if (!File.Exists(file))
             {
                 return new Settings();
@@ -65,8 +68,9 @@ namespace IssueCreator
                     return DecryptSettings(JsonSerializer.Deserialize<Settings>(sr.ReadToEnd()));
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                log.Log(ex.Message);
                 return new Settings();
             }
         }
