@@ -116,7 +116,7 @@ namespace IssueCreator
             }
         }
 
-        public async Task<bool> SetIssueEstimateAsync(long repoId, int issueNumber, int estimate)
+        public async Task<bool> SetIssueEstimateAsync(long repoId, int issueNumber, double estimate)
         {
             using IDisposable scope = _fileLogger.CreateScope($"Setting issue estimate to {estimate}");
 
@@ -181,12 +181,12 @@ namespace IssueCreator
             using IDisposable scope = _fileLogger.CreateScope("Creating issue");
 
             bool validEstimate = false;
-            int estimate = 0;
+            double estimate = 0;
             if (string.IsNullOrEmpty(issueToCreate.Estimate))
             {
                 validEstimate = true;
             }
-            else if (int.TryParse(issueToCreate.Estimate, out estimate) && estimate > 0)
+            else if (double.TryParse(issueToCreate.Estimate, out estimate) && estimate > 0)
             {
                 validEstimate = true;
             }
