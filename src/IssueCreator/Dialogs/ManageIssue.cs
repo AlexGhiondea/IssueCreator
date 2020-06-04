@@ -170,5 +170,30 @@ namespace IssueCreator.Dialogs
                 }
             }
         }
+
+        private async void txtIssueNumber_Leave(object sender, EventArgs e)
+        {
+            // if we can't parse the number, don't show it.
+            if (!int.TryParse(txtIssueNumber.Text, out int issueNumber))
+            {
+                return;
+            }
+
+            // try to load the issue from the github and show the title.
+            try
+            {
+                // get the repository
+                (string owner, string repo) = GetRepoOwner();
+
+                RepositoryInfo repoFromGH = await _issueManager.GetRepositoryAsync(owner, repo);
+
+                IssueObject issue = await _issueManager.GetIssueAsync(repoFromGH.Id, issueNumber);
+
+                lblIssueTitle.Text = issue.Title;
+            }
+            catch{
+                lblIssueTitle.Text = "<issueNotFound>";
+            }
+        }
     }
 }

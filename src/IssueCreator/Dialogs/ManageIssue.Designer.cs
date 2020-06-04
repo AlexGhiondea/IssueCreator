@@ -38,6 +38,7 @@
             this.btnBrowseEpic = new System.Windows.Forms.Button();
             this.cboEpics = new IssueCreator.Controls.ComboBoxWithSearch();
             this.txtIssueNumber = new IssueCreator.Controls.TextBoxEx();
+            this.lblIssueTitle = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label1
@@ -151,12 +152,23 @@
             this.txtIssueNumber.Name = "txtIssueNumber";
             this.txtIssueNumber.Size = new System.Drawing.Size(55, 27);
             this.txtIssueNumber.TabIndex = 2;
+            this.txtIssueNumber.Leave += new System.EventHandler(this.txtIssueNumber_Leave);
+            // 
+            // lblIssueTitle
+            // 
+            this.lblIssueTitle.AutoSize = true;
+            this.lblIssueTitle.Font = new System.Drawing.Font("Calibri", 12F);
+            this.lblIssueTitle.Location = new System.Drawing.Point(167, 78);
+            this.lblIssueTitle.Name = "lblIssueTitle";
+            this.lblIssueTitle.Size = new System.Drawing.Size(0, 19);
+            this.lblIssueTitle.TabIndex = 11;
             // 
             // ManageIssue
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(686, 156);
+            this.Controls.Add(this.lblIssueTitle);
             this.Controls.Add(this.btnBrowseEpic);
             this.Controls.Add(this.btnRemove);
             this.Controls.Add(this.cboEpics);
@@ -188,5 +200,6 @@
         private Controls.ComboBoxWithSearch cboEpics;
         private System.Windows.Forms.Button btnRemove;
         private System.Windows.Forms.Button btnBrowseEpic;
+        private System.Windows.Forms.Label lblIssueTitle;
     }
 }
