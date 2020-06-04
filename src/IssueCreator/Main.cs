@@ -52,13 +52,8 @@ namespace IssueCreator
         {
             SettingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "IssueCreator");
             SettingsFile = Path.Combine(SettingsFolder, "issueCreator.settings");
-            s_logger = new FileLogger(Path.Combine(SettingsFolder, "issueCreator.log"));
 
-            s_logger.Log($"=====>>>>  IssueCreator started  <<<<=====");
-            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-
-            InitializeComponent();
-
+            // The directories need to exist prior to anything else
             if (!Directory.Exists(SettingsFolder))
             {
                 Directory.CreateDirectory(SettingsFolder);
@@ -68,6 +63,14 @@ namespace IssueCreator
             {
                 Directory.CreateDirectory(CacheFolder);
             }
+
+            // Log the launch of the app
+            s_logger = new FileLogger(Path.Combine(SettingsFolder, "issueCreator.log"));
+            s_logger.Log($"=====>>>>  IssueCreator started  <<<<=====");
+
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
+            InitializeComponent();
         }
 
 #pragma warning disable 1998 //We want a fire and forget async method here.
