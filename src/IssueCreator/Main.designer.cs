@@ -47,8 +47,12 @@ namespace IssueCreator
             this.tssVersion = new System.Windows.Forms.ToolStripStatusLabel();
             this.tssStatus = new System.Windows.Forms.ToolStripStatusLabel();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.preferencesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.issuesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.assignIssueToEpicToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.lblEpic = new System.Windows.Forms.Label();
             this.btnRefreshEpics = new System.Windows.Forms.Button();
             this.label8 = new System.Windows.Forms.Label();
@@ -62,8 +66,6 @@ namespace IssueCreator
             this.lstSelectedTags = new IssueCreator.Controls.ListBoxWithSearch();
             this.txtDescription = new IssueCreator.Controls.TextBoxEx();
             this.txtIssueTitle = new IssueCreator.Controls.TextBoxEx();
-            this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -219,12 +221,28 @@ namespace IssueCreator
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
-            this.editToolStripMenuItem});
+            this.editToolStripMenuItem,
+            this.issuesToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(605, 24);
             this.menuStrip1.TabIndex = 19;
             this.menuStrip1.Text = "menuStrip1";
+            // 
+            // fileToolStripMenuItem
+            // 
+            this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.exitToolStripMenuItem});
+            this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
+            this.fileToolStripMenuItem.Text = "File";
+            // 
+            // exitToolStripMenuItem
+            // 
+            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(92, 22);
+            this.exitToolStripMenuItem.Text = "E&xit";
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
             // editToolStripMenuItem
             // 
@@ -240,6 +258,22 @@ namespace IssueCreator
             this.preferencesToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
             this.preferencesToolStripMenuItem.Text = "Preferences";
             this.preferencesToolStripMenuItem.Click += new System.EventHandler(this.PreferencesToolStripMenuItem_Click);
+            // 
+            // issuesToolStripMenuItem
+            // 
+            this.issuesToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.assignIssueToEpicToolStripMenuItem});
+            this.issuesToolStripMenuItem.Name = "issuesToolStripMenuItem";
+            this.issuesToolStripMenuItem.Size = new System.Drawing.Size(50, 20);
+            this.issuesToolStripMenuItem.Text = "Issues";
+            // 
+            // assignIssueToEpicToolStripMenuItem
+            // 
+            this.assignIssueToEpicToolStripMenuItem.Enabled = false;
+            this.assignIssueToEpicToolStripMenuItem.Name = "assignIssueToEpicToolStripMenuItem";
+            this.assignIssueToEpicToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.assignIssueToEpicToolStripMenuItem.Text = "Manage issues";
+            this.assignIssueToEpicToolStripMenuItem.Click += new System.EventHandler(this.assignIssueToEpicToolStripMenuItem_Click);
             // 
             // lblEpic
             // 
@@ -403,21 +437,6 @@ namespace IssueCreator
             this.txtIssueTitle.Size = new System.Drawing.Size(497, 26);
             this.txtIssueTitle.TabIndex = 3;
             // 
-            // fileToolStripMenuItem
-            // 
-            this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.exitToolStripMenuItem});
-            this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
-            this.fileToolStripMenuItem.Text = "File";
-            // 
-            // exitToolStripMenuItem
-            // 
-            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.exitToolStripMenuItem.Text = "E&xit";
-            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
-            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -498,6 +517,8 @@ namespace IssueCreator
         private ComboBoxWithSearch cboMilestones;
         private ToolStripMenuItem fileToolStripMenuItem;
         private ToolStripMenuItem exitToolStripMenuItem;
+        private ToolStripMenuItem issuesToolStripMenuItem;
+        private ToolStripMenuItem assignIssueToEpicToolStripMenuItem;
     }
 }
 

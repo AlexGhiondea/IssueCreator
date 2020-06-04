@@ -12,12 +12,14 @@ namespace IssueCreator.Models
         public string Title { get; set; }
         public string State { get; set; }
         public int Number { get; set; }
+        public string HtmlUrl { get; set; }
 
         public IssueObject(Issue issue)
         {
             Title = issue.Title;
             State = issue.State.StringValue;
             Number = issue.Number;
+            HtmlUrl = issue.HtmlUrl;
         }
 
         public IssueObject() //for deserialization

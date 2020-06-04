@@ -12,6 +12,8 @@ using System.Windows.Forms;
 using System.Net.Http;
 using Octokit;
 using IssueCreator.Logging;
+using IssueCreator.Helpers;
+using System.CodeDom;
 
 namespace IssueCreator
 {
@@ -141,7 +143,7 @@ namespace IssueCreator
 
         private async void BtnCreateIssue_Click(object sender, EventArgs e)
         {
-            (string owner, string repo) = GetRepoOwner();
+            (string owner, string repo) = UIHelpers.GetRepoOwner(cboAvailableRepos.SelectedItem);
 
             // build up the list of labels to appen
             List<string> selectedLabels = new List<string>();
@@ -211,6 +213,7 @@ namespace IssueCreator
 
             btnRefreshEpics.Enabled = false;
             cboEpics.Enabled = false;
+            assignIssueToEpicToolStripMenuItem.Enabled = false;
             preferencesToolStripMenuItem.Enabled = false;
             tssStatus.Text = "Loading ZenHub Epics...";
 
@@ -221,6 +224,7 @@ namespace IssueCreator
             cboEpics.Items.Clear();
             cboEpics.Items.AddRange(issues.Where((issue) => StringComparer.OrdinalIgnoreCase.Equals(issue.Issue.State, Octokit.ItemState.Open.ToString())).ToArray());
 
+            assignIssueToEpicToolStripMenuItem.Enabled = true;
             preferencesToolStripMenuItem.Enabled = true;
             cboEpics.Enabled = true;
             btnRefreshEpics.Enabled = true;
@@ -241,7 +245,7 @@ namespace IssueCreator
 
         private async void UpdateMilestoneListAsync()
         {
-            (string owner, string repository) = GetRepoOwner();
+            (string owner, string repository) = UIHelpers.GetRepoOwner(cboAvailableRepos.SelectedItem);
 
             IEnumerable<IssueMilestone> milestones = await s_issueManager.GetMilestonesAsync(owner, repository);
 
@@ -278,7 +282,7 @@ namespace IssueCreator
 
         private async void UpdateLabelListAsync()
         {
-            (string owner, string repository) = GetRepoOwner();
+            (string owner, string repository) = UIHelpers.GetRepoOwner(cboAvailableRepos.SelectedItem);
 
             List<RepoLabel> labels = await s_issueManager.GetLabelsAsync(owner, repository);
 
@@ -320,23 +324,9 @@ namespace IssueCreator
             }
         }
 
-        private (string, string) GetRepoOwner()
-        {
-            if (cboAvailableRepos.SelectedItem == null)
-                return (string.Empty, string.Empty);
-
-            return GetOwnerAndRepoFromString(cboAvailableRepos.SelectedItem.ToString());
-        }
-
-        private (string, string) GetOwnerAndRepoFromString(string input)
-        {
-            string[] parts = input.Split('\\');
-            return (parts[0], parts[1]);
-        }
-
         private async void UpdateAssigneesListAsync()
         {
-            (string owner, string repo) = GetRepoOwner();
+            (string owner, string repo) = UIHelpers.GetRepoOwner(cboAvailableRepos.SelectedItem);
 
             cboAssignees.Enabled = false;
 
@@ -403,7 +393,7 @@ namespace IssueCreator
             //clear the repositories from the cache and then force a refresh
             foreach (string item in s_settings.Repositories)
             {
-                (string owner, string repo) = GetOwnerAndRepoFromString(item);
+                (string owner, string repo) = StringHelpers.GetOwnerAndRepoFromString(item);
                 s_issueManager.RemoveEpicFromCache(owner, repo);
             }
             await UpdateEpicListAsync();
@@ -446,5 +436,16 @@ namespace IssueCreator
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e) => Close();
+
+        private void assignIssueToEpicToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using IDisposable scope = s_logger.CreateScope("Open issue management dialog");
+
+            object[] epics = new object[cboEpics.Items.Count];
+            cboEpics.Items.CopyTo(epics, 0);
+
+            ManageIssue addTo = new ManageIssue(s_issueManager, s_settings, s_logger, epics);
+            addTo.ShowDialog(this);
+        }
     }
 }
