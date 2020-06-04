@@ -211,6 +211,7 @@ namespace IssueCreator
 
             btnRefreshEpics.Enabled = false;
             cboEpics.Enabled = false;
+            assignIssueToEpicToolStripMenuItem.Enabled = false;
             preferencesToolStripMenuItem.Enabled = false;
             tssStatus.Text = "Loading ZenHub Epics...";
 
@@ -221,6 +222,7 @@ namespace IssueCreator
             cboEpics.Items.Clear();
             cboEpics.Items.AddRange(issues.Where((issue) => StringComparer.OrdinalIgnoreCase.Equals(issue.Issue.State, Octokit.ItemState.Open.ToString())).ToArray());
 
+            assignIssueToEpicToolStripMenuItem.Enabled = true;
             preferencesToolStripMenuItem.Enabled = true;
             cboEpics.Enabled = true;
             btnRefreshEpics.Enabled = true;
@@ -446,5 +448,11 @@ namespace IssueCreator
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e) => Close();
+
+        private void assignIssueToEpicToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ManageIssue addTo = new ManageIssue(s_issueManager, s_settings, s_logger);
+            addTo.ShowDialog(this);
+        }
     }
 }

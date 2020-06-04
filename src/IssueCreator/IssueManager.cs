@@ -116,6 +116,27 @@ namespace IssueCreator
             }
         }
 
+        public async Task<bool> RemoveIssueFromEpicAsync(long repoId, int epicNumber, long repoIdIssue, int issueNumber)
+        {
+            using IDisposable scope = _fileLogger.CreateScope("Removing issue from epic");
+            try
+            {
+                //create an issue with just the number and repository set
+                // The only 2 parameters that need to be specified are the issueNumber and the repository.
+                Issue issue = new Issue(default, default, default, default,
+                    number: issueNumber, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default, default,
+                    repository: new Repository(repoIdIssue), default);
+                await _zenHubClient.GetEpicClient(repoId, epicNumber).RemoveIssuesAsync(new[] { issue });
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _fileLogger.Log(ex.ToString());
+                return false;
+            }
+        }
+
+
         public async Task<bool> SetIssueEstimateAsync(long repoId, int issueNumber, double estimate)
         {
             using IDisposable scope = _fileLogger.CreateScope($"Setting issue estimate to {estimate}");
@@ -340,6 +361,7 @@ namespace IssueCreator
 
             return valueToCache;
         }
+
         private async Task SerializeObjectToDiskAsync<TValue>(string key, TValue value)
         {
             using IDisposable scope = _fileLogger.CreateScope($"Saving data to cache {key}");

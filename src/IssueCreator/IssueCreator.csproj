@@ -162,6 +162,12 @@
     <Compile Include="Controls\ListBoxWithSearch.Designer.cs">
       <DependentUpon>ListBoxWithSearch.cs</DependentUpon>
     </Compile>
+    <Compile Include="Dialogs\ManageIssue.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\ManageIssue.Designer.cs">
+      <DependentUpon>ManageIssue.cs</DependentUpon>
+    </Compile>
     <Compile Include="Helpers\StringHelpers.cs" />
     <Compile Include="Controls\TextBoxEx.cs">
       <SubType>Component</SubType>
@@ -206,6 +212,9 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
+    <EmbeddedResource Include="Dialogs\ManageIssue.resx">
+      <DependentUpon>ManageIssue.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Dialogs\Preferences.resx">
       <DependentUpon>Preferences.cs</DependentUpon>
     </EmbeddedResource>
