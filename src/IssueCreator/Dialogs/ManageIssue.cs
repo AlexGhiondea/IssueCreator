@@ -74,10 +74,15 @@ namespace IssueCreator.Dialogs
 
         private async void btnAdd_Click(object sender, EventArgs e)
         {
-            await ExecuteIssueOperation();
+            await ExecuteIssueOperation(_issueManager.AddIssueToEpicAsync);
         }
 
-        private async Task ExecuteIssueOperation(Func<long, int,long,int, Task<bool>> action)
+        private async void btnRemove_Click(object sender, EventArgs e)
+        {
+            await ExecuteIssueOperation(_issueManager.RemoveIssueFromEpicAsync);
+        }
+
+        private async Task ExecuteIssueOperation(Func<long, int, long, int, Task<bool>> action)
         {
             if (!int.TryParse(txtIssueNumber.Text, out int issueNumber))
             {
@@ -109,41 +114,6 @@ namespace IssueCreator.Dialogs
             else
             {
                 MessageBox.Show("Done!");
-            }
-        }
-
-        private async void btnRemove_Click(object sender, EventArgs e)
-        {
-            if (!int.TryParse(txtIssueNumber.Text, out int issueNumber))
-            {
-                MessageBox.Show("Please specify a number for the issue");
-            }
-
-            if (cboAvailableRepos.SelectedItem == null)
-            {
-                MessageBox.Show("Please select a repository");
-            }
-
-            if (cboEpics.SelectedItem == null)
-            {
-                MessageBox.Show("Please select an epic");
-            }
-
-            // get the repository
-            (string owner, string repo) = UIHelpers.GetRepoOwner(cboAvailableRepos.SelectedItem);
-
-            RepositoryInfo repoFromGH = await _issueManager.GetRepositoryAsync(owner, repo);
-            IssueDescription epicInfo = cboEpics.SelectedItem as IssueDescription;
-
-            bool result = await _issueManager.RemoveIssueFromEpicAsync(epicInfo.Repo.Id, epicInfo.Issue.Number, repoFromGH.Id, issueNumber);
-
-            if (!result)
-            {
-                MessageBox.Show(this, "Coult not associate the issue with the epic");
-            }
-            else
-            {
-                MessageBox.Show(this, "Done!");
             }
         }
 
