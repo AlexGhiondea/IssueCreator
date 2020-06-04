@@ -13,6 +13,7 @@ using System.Net.Http;
 using Octokit;
 using IssueCreator.Logging;
 using IssueCreator.Helpers;
+using System.CodeDom;
 
 namespace IssueCreator
 {
@@ -438,7 +439,12 @@ namespace IssueCreator
 
         private void assignIssueToEpicToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ManageIssue addTo = new ManageIssue(s_issueManager, s_settings, s_logger);
+            using IDisposable scope = s_logger.CreateScope("Open issue management dialog");
+
+            object[] epics = new object[cboEpics.Items.Count];
+            cboEpics.Items.CopyTo(epics, 0);
+
+            ManageIssue addTo = new ManageIssue(s_issueManager, s_settings, s_logger, epics);
             addTo.ShowDialog(this);
         }
     }
