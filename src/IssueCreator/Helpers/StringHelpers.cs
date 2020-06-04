@@ -2,7 +2,6 @@
 {
     public static class StringHelpers
     {
-
         public static bool ProcessCtrlBackspace(string inputText, int selectionStart, out string remainingText, out int newSelectionIndex)
         {
             if (selectionStart > 0)
@@ -78,6 +77,12 @@
             }
 
             return (0);
+        }
+
+        public static (string, string) GetOwnerAndRepoFromString(string input)
+        {
+            string[] parts = input.Split('\\');
+            return (parts[0], parts[1]);
         }
     }
 }

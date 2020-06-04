@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using System.Net.Http;
 using Octokit;
 using IssueCreator.Logging;
+using IssueCreator.Helpers;
 
 namespace IssueCreator
 {
@@ -141,7 +142,7 @@ namespace IssueCreator
 
         private async void BtnCreateIssue_Click(object sender, EventArgs e)
         {
-            (string owner, string repo) = GetRepoOwner();
+            (string owner, string repo) = UIHelpers.GetRepoOwner(cboAvailableRepos.SelectedItem);
 
             // build up the list of labels to appen
             List<string> selectedLabels = new List<string>();
@@ -243,7 +244,7 @@ namespace IssueCreator
 
         private async void UpdateMilestoneListAsync()
         {
-            (string owner, string repository) = GetRepoOwner();
+            (string owner, string repository) = UIHelpers.GetRepoOwner(cboAvailableRepos.SelectedItem);
 
             IEnumerable<IssueMilestone> milestones = await s_issueManager.GetMilestonesAsync(owner, repository);
 
@@ -280,7 +281,7 @@ namespace IssueCreator
 
         private async void UpdateLabelListAsync()
         {
-            (string owner, string repository) = GetRepoOwner();
+            (string owner, string repository) = UIHelpers.GetRepoOwner(cboAvailableRepos.SelectedItem);
 
             List<RepoLabel> labels = await s_issueManager.GetLabelsAsync(owner, repository);
 
@@ -322,23 +323,9 @@ namespace IssueCreator
             }
         }
 
-        private (string, string) GetRepoOwner()
-        {
-            if (cboAvailableRepos.SelectedItem == null)
-                return (string.Empty, string.Empty);
-
-            return GetOwnerAndRepoFromString(cboAvailableRepos.SelectedItem.ToString());
-        }
-
-        private (string, string) GetOwnerAndRepoFromString(string input)
-        {
-            string[] parts = input.Split('\\');
-            return (parts[0], parts[1]);
-        }
-
         private async void UpdateAssigneesListAsync()
         {
-            (string owner, string repo) = GetRepoOwner();
+            (string owner, string repo) = UIHelpers.GetRepoOwner(cboAvailableRepos.SelectedItem);
 
             cboAssignees.Enabled = false;
 
@@ -405,7 +392,7 @@ namespace IssueCreator
             //clear the repositories from the cache and then force a refresh
             foreach (string item in s_settings.Repositories)
             {
-                (string owner, string repo) = GetOwnerAndRepoFromString(item);
+                (string owner, string repo) = StringHelpers.GetOwnerAndRepoFromString(item);
                 s_issueManager.RemoveEpicFromCache(owner, repo);
             }
             await UpdateEpicListAsync();

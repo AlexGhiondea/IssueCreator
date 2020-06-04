@@ -1,4 +1,5 @@
-﻿using IssueCreator.Logging;
+﻿using IssueCreator.Helpers;
+using IssueCreator.Logging;
 using IssueCreator.Models;
 using Octokit;
 using System;
@@ -73,6 +74,11 @@ namespace IssueCreator.Dialogs
 
         private async void btnAdd_Click(object sender, EventArgs e)
         {
+            await ExecuteIssueOperation();
+        }
+
+        private async Task ExecuteIssueOperation(Func<long, int,long,int, Task<bool>> action)
+        {
             if (!int.TryParse(txtIssueNumber.Text, out int issueNumber))
             {
                 MessageBox.Show("Please specify a number for the issue");
@@ -89,12 +95,12 @@ namespace IssueCreator.Dialogs
             }
 
             // get the repository
-            (string owner, string repo) = GetRepoOwner();
+            (string owner, string repo) = UIHelpers.GetRepoOwner(cboAvailableRepos.SelectedItem);
 
             RepositoryInfo repoFromGH = await _issueManager.GetRepositoryAsync(owner, repo);
             IssueDescription epicInfo = cboEpics.SelectedItem as IssueDescription;
 
-            bool result = await _issueManager.AddIssueToEpicAsync(epicInfo.Repo.Id, epicInfo.Issue.Number, repoFromGH.Id, issueNumber);
+            bool result = await action(epicInfo.Repo.Id, epicInfo.Issue.Number, repoFromGH.Id, issueNumber);
 
             if (!result)
             {
@@ -104,20 +110,6 @@ namespace IssueCreator.Dialogs
             {
                 MessageBox.Show("Done!");
             }
-        }
-
-        private (string, string) GetRepoOwner()
-        {
-            if (cboAvailableRepos.SelectedItem == null)
-                return (string.Empty, string.Empty);
-
-            return GetOwnerAndRepoFromString(cboAvailableRepos.SelectedItem.ToString());
-        }
-
-        private (string, string) GetOwnerAndRepoFromString(string input)
-        {
-            string[] parts = input.Split('\\');
-            return (parts[0], parts[1]);
         }
 
         private async void btnRemove_Click(object sender, EventArgs e)
@@ -138,7 +130,7 @@ namespace IssueCreator.Dialogs
             }
 
             // get the repository
-            (string owner, string repo) = GetRepoOwner();
+            (string owner, string repo) = UIHelpers.GetRepoOwner(cboAvailableRepos.SelectedItem);
 
             RepositoryInfo repoFromGH = await _issueManager.GetRepositoryAsync(owner, repo);
             IssueDescription epicInfo = cboEpics.SelectedItem as IssueDescription;
@@ -183,7 +175,7 @@ namespace IssueCreator.Dialogs
             try
             {
                 // get the repository
-                (string owner, string repo) = GetRepoOwner();
+                (string owner, string repo) = UIHelpers.GetRepoOwner(cboAvailableRepos.SelectedItem);
 
                 RepositoryInfo repoFromGH = await _issueManager.GetRepositoryAsync(owner, repo);
 

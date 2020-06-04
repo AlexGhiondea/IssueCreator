@@ -193,6 +193,7 @@
     <Compile Include="Dialogs\TextInput.Designer.cs">
       <DependentUpon>TextInput.cs</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\UIHelpers.cs" />
     <Compile Include="Logging\FileLogger.cs" />
     <Compile Include="Logging\LogScope.cs" />
     <Compile Include="Models\Contributor.cs" />

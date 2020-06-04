@@ -1,4 +1,5 @@
-﻿using IssueCreator.Logging;
+﻿using IssueCreator.Helpers;
+using IssueCreator.Logging;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
@@ -109,7 +110,7 @@ namespace IssueCreator.Dialogs
             }
 
             string text = lstAvailableRepos.SelectedItem.ToString();
-            (string owner, string repo) = GetOwnerAndRepoFromString(text);
+            (string owner, string repo) = StringHelpers.GetOwnerAndRepoFromString(text);
             if (MessageBox.Show(this, $"Remove the repository '{text}' ?", "Are you sure?", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
                 NewSettings.Repositories.Remove(text);
@@ -118,12 +119,6 @@ namespace IssueCreator.Dialogs
                 //remove it from the cache
                 _issueManager.RemoveRepoFromCache(owner, repo);
             }
-        }
-
-        private (string, string) GetOwnerAndRepoFromString(string input)
-        {
-            string[] parts = input.Split('\\');
-            return (parts[0], parts[1]);
         }
 
         private void LinkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) => Process.Start(linkLabel1.Text);
