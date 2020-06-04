@@ -41,6 +41,9 @@ namespace IssueCreator.Dialogs
             this.btnAddRepository = new System.Windows.Forms.Button();
             this.label4 = new System.Windows.Forms.Label();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.lstDefaultLabels = new IssueCreator.Controls.ListBoxWithSearch();
+            this.txtDefaultTitle = new IssueCreator.Controls.TextBoxEx();
+            this.lstAvailableRepos = new IssueCreator.Controls.ListBoxWithSearch();
             this.btnRemoveLabel = new System.Windows.Forms.Button();
             this.btnAddLabel = new System.Windows.Forms.Button();
             this.lblTags = new System.Windows.Forms.Label();
@@ -48,10 +51,8 @@ namespace IssueCreator.Dialogs
             this.linkLabel2 = new System.Windows.Forms.LinkLabel();
             this.label6 = new System.Windows.Forms.Label();
             this.txtGitHubToken = new IssueCreator.Controls.TextBoxEx();
-            this.lstDefaultLabels = new IssueCreator.Controls.ListBoxWithSearch();
-            this.txtDefaultTitle = new IssueCreator.Controls.TextBoxEx();
-            this.lstAvailableRepos = new IssueCreator.Controls.ListBoxWithSearch();
             this.txtToken = new IssueCreator.Controls.TextBoxEx();
+            this.btnClearCacheFolder = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnCancel
@@ -154,6 +155,44 @@ namespace IssueCreator.Dialogs
             this.label4.TabIndex = 20;
             this.label4.Text = "Default title";
             // 
+            // lstDefaultLabels
+            // 
+            this.lstDefaultLabels.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lstDefaultLabels.FormattingEnabled = true;
+            this.lstDefaultLabels.IntegralHeight = false;
+            this.lstDefaultLabels.ItemHeight = 19;
+            this.lstDefaultLabels.Location = new System.Drawing.Point(117, 424);
+            this.lstDefaultLabels.Name = "lstDefaultLabels";
+            this.lstDefaultLabels.Size = new System.Drawing.Size(521, 118);
+            this.lstDefaultLabels.Sorted = true;
+            this.lstDefaultLabels.TabIndex = 22;
+            this.toolTip.SetToolTip(this.lstDefaultLabels, "The list of labels that will be added by default when you change the repo");
+            // 
+            // txtDefaultTitle
+            // 
+            this.txtDefaultTitle.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtDefaultTitle.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtDefaultTitle.Location = new System.Drawing.Point(117, 391);
+            this.txtDefaultTitle.Name = "txtDefaultTitle";
+            this.txtDefaultTitle.Size = new System.Drawing.Size(521, 27);
+            this.txtDefaultTitle.TabIndex = 21;
+            this.toolTip.SetToolTip(this.txtDefaultTitle, "The value that shows up when the app starts and no other changes have been made");
+            // 
+            // lstAvailableRepos
+            // 
+            this.lstAvailableRepos.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lstAvailableRepos.FormattingEnabled = true;
+            this.lstAvailableRepos.ItemHeight = 19;
+            this.lstAvailableRepos.Location = new System.Drawing.Point(118, 248);
+            this.lstAvailableRepos.Name = "lstAvailableRepos";
+            this.lstAvailableRepos.Size = new System.Drawing.Size(521, 137);
+            this.lstAvailableRepos.Sorted = true;
+            this.lstAvailableRepos.TabIndex = 13;
+            this.toolTip.SetToolTip(this.lstAvailableRepos, "The list of available repositories to load issues from");
+            // 
             // btnRemoveLabel
             // 
             this.btnRemoveLabel.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -227,44 +266,6 @@ namespace IssueCreator.Dialogs
             this.txtGitHubToken.Size = new System.Drawing.Size(521, 27);
             this.txtGitHubToken.TabIndex = 29;
             // 
-            // lstDefaultLabels
-            // 
-            this.lstDefaultLabels.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.lstDefaultLabels.FormattingEnabled = true;
-            this.lstDefaultLabels.IntegralHeight = false;
-            this.lstDefaultLabels.ItemHeight = 19;
-            this.lstDefaultLabels.Location = new System.Drawing.Point(117, 424);
-            this.lstDefaultLabels.Name = "lstDefaultLabels";
-            this.lstDefaultLabels.Size = new System.Drawing.Size(521, 118);
-            this.lstDefaultLabels.Sorted = true;
-            this.lstDefaultLabels.TabIndex = 22;
-            this.toolTip.SetToolTip(this.lstDefaultLabels, "The list of labels that will be added by default when you change the repo");
-            // 
-            // txtDefaultTitle
-            // 
-            this.txtDefaultTitle.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtDefaultTitle.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtDefaultTitle.Location = new System.Drawing.Point(117, 391);
-            this.txtDefaultTitle.Name = "txtDefaultTitle";
-            this.txtDefaultTitle.Size = new System.Drawing.Size(521, 27);
-            this.txtDefaultTitle.TabIndex = 21;
-            this.toolTip.SetToolTip(this.txtDefaultTitle, "The value that shows up when the app starts and no other changes have been made");
-            // 
-            // lstAvailableRepos
-            // 
-            this.lstAvailableRepos.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.lstAvailableRepos.FormattingEnabled = true;
-            this.lstAvailableRepos.ItemHeight = 19;
-            this.lstAvailableRepos.Location = new System.Drawing.Point(118, 248);
-            this.lstAvailableRepos.Name = "lstAvailableRepos";
-            this.lstAvailableRepos.Size = new System.Drawing.Size(521, 137);
-            this.lstAvailableRepos.Sorted = true;
-            this.lstAvailableRepos.TabIndex = 13;
-            this.toolTip.SetToolTip(this.lstAvailableRepos, "The list of available repositories to load issues from");
-            // 
             // txtToken
             // 
             this.txtToken.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
@@ -275,11 +276,23 @@ namespace IssueCreator.Dialogs
             this.txtToken.Size = new System.Drawing.Size(521, 27);
             this.txtToken.TabIndex = 12;
             // 
+            // btnClearCacheFolder
+            // 
+            this.btnClearCacheFolder.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnClearCacheFolder.Location = new System.Drawing.Point(40, 551);
+            this.btnClearCacheFolder.Name = "btnClearCacheFolder";
+            this.btnClearCacheFolder.Size = new System.Drawing.Size(145, 30);
+            this.btnClearCacheFolder.TabIndex = 30;
+            this.btnClearCacheFolder.Text = "Clear cache folder";
+            this.btnClearCacheFolder.UseVisualStyleBackColor = true;
+            this.btnClearCacheFolder.Click += new System.EventHandler(this.btnClearCacheFolder_Click);
+            // 
             // Preferences
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 19F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(655, 599);
+            this.Controls.Add(this.btnClearCacheFolder);
             this.Controls.Add(this.txtGitHubToken);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.linkLabel2);
@@ -334,5 +347,6 @@ namespace IssueCreator.Dialogs
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.LinkLabel linkLabel2;
         private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Button btnClearCacheFolder;
     }
 }

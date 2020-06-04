@@ -3,6 +3,7 @@ using IssueCreator.Logging;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -15,18 +16,20 @@ namespace IssueCreator.Dialogs
         public Settings NewSettings { get; }
         private string _settingsFile;
         private FileLogger _logger;
+        private string _cacheFolder;
 
         public Preferences()
         {
             InitializeComponent();
         }
 
-        public Preferences(Settings settings, IssueManager issueManager, string settingsFile, FileLogger logger) : this()
+        public Preferences(Settings settings, IssueManager issueManager, string settingsFile, string cacheFolder, FileLogger logger) : this()
         {
             _logger = logger;
             NewSettings = settings;
             _issueManager = issueManager;
             _settingsFile = settingsFile;
+            _cacheFolder = cacheFolder;
 
             foreach (string item in NewSettings.Repositories)
             {
@@ -153,5 +156,32 @@ namespace IssueCreator.Dialogs
         }
 
         private void linkLabel2_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) => Process.Start(linkLabel2.Text);
+
+        private void btnClearCacheFolder_Click(object sender, EventArgs e)
+        {
+            // rename the folder first.
+            using IDisposable scope = _logger.CreateScope("Clearing the local cache");
+            try
+            {
+                string destinationCacheFolder = $"{_cacheFolder}_{DateTime.Now.Ticks}";
+                Directory.Move(_cacheFolder, destinationCacheFolder);
+                _logger.Log($"Cache folder renamed to {destinationCacheFolder}.");
+
+                Directory.CreateDirectory(_cacheFolder);
+                _logger.Log($"Cache folder re-created");
+
+                foreach (string file in Directory.GetFiles(destinationCacheFolder))
+                {
+                    File.Delete(file);
+                }
+
+                Directory.Delete(destinationCacheFolder);
+                _logger.Log($"Folder {destinationCacheFolder} deleted.");
+            }
+            catch
+            {
+
+            }
+        }
     }
 }
