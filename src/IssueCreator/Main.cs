@@ -44,7 +44,6 @@ namespace IssueCreator
             }
         }
 
-
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             s_logger.Log((e.ExceptionObject as Exception)?.ToString());
@@ -407,7 +406,7 @@ namespace IssueCreator
         private void ShowPreferencesDialog()
         {
             using IDisposable scope = s_logger.CreateScope("Show preferences dialog");
-            Preferences p = new Preferences(s_settings.Clone(), s_issueManager, SettingsFile, s_logger);
+            Preferences p = new Preferences(s_settings.Clone(), s_issueManager, SettingsFile, CacheFolder, s_logger);
             if (p.ShowDialog() == DialogResult.OK)
             {
                 s_settings = p.NewSettings;
