@@ -33,6 +33,7 @@ namespace IssueCreator.Dialogs
             _settings = settings;
 
             cboEpics.Items.AddRange(epicList);
+            cboAvailableRepos.Items.AddRange(settings.Repositories.ToArray());
         }
 
         private void btnClose_Click(object sender, EventArgs e)
