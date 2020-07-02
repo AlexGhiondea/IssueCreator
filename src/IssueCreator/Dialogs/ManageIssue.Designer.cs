@@ -75,6 +75,7 @@
             // btnClose
             // 
             this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnClose.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnClose.Font = new System.Drawing.Font("Calibri", 12F);
             this.btnClose.Location = new System.Drawing.Point(598, 109);
             this.btnClose.Name = "btnClose";
@@ -167,6 +168,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.CancelButton = this.btnClose;
             this.ClientSize = new System.Drawing.Size(686, 156);
             this.Controls.Add(this.lblIssueTitle);
             this.Controls.Add(this.btnBrowseEpic);
