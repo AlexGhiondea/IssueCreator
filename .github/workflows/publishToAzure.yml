@@ -30,11 +30,10 @@ jobs:
       run: msbuild ./src/IssueCreator.sln /p:Configuration=Release /t:Publish
 
     - name: Push Publish folder to Azure Blob
-      - uses: actions/checkout@v2
-      - uses: bacongobbler/azure-blob-storage-upload@v1.1.1
-        with:
-          source_dir: ./bin/src/IssueCreator/Debug/app.publish
-          container_name: testContainer
-          connection_string: ${{ secrets.ConnectionString }}
-          sync: false
-   
+      uses: actions/checkout@v2
+      uses: bacongobbler/azure-blob-storage-upload@v1.1.1
+      with:
+        source_dir: ./bin/src/IssueCreator/Debug/app.publish
+        container_name: testContainer
+        connection_string: ${{ secrets.ConnectionString }}
+        sync: false
