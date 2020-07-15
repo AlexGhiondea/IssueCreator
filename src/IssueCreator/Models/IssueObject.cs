@@ -1,9 +1,6 @@
 ﻿using Octokit;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace IssueCreator.Models
 {
@@ -13,6 +10,9 @@ namespace IssueCreator.Models
         public string State { get; set; }
         public int Number { get; set; }
         public string HtmlUrl { get; set; }
+        public string Body { get; set; }
+        public List<string> Tags { get; set; }
+        public IssueMilestone Milestone { get; set; }
 
         public IssueObject(Issue issue)
         {
@@ -20,6 +20,10 @@ namespace IssueCreator.Models
             State = issue.State.StringValue;
             Number = issue.Number;
             HtmlUrl = issue.HtmlUrl;
+            Body = issue.Body;
+            Tags = issue.Labels.Select(l => l.Name).ToList();
+            if (issue.Milestone != null)
+                Milestone = new IssueMilestone(issue.Milestone);
         }
 
         public IssueObject() //for deserialization

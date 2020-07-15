@@ -1,19 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace IssueCreator.Helpers
+﻿namespace IssueCreator.Helpers
 {
     internal static class UIHelpers
     {
-        public static (string, string) GetRepoOwner(object selectedItem)
-        {
-            if (selectedItem == null)
-                return (string.Empty, string.Empty);
+        private static (string owner, string repo) _selectedRepo;
+        private static string _selectedItem;
 
-            return StringHelpers.GetOwnerAndRepoFromString(selectedItem.ToString());
+        public static (string owner, string repo) GetRepoOwner(object selectedItem)
+        {
+            string selectedRepo = selectedItem as string;
+
+            if (string.IsNullOrEmpty(selectedRepo))
+                return (string.Empty, string.Empty);
+            if (_selectedItem == selectedRepo)
+                return _selectedRepo;
+
+            _selectedRepo = StringHelpers.GetOwnerAndRepoFromString(selectedRepo);
+            _selectedItem = selectedRepo;
+            return _selectedRepo;
         }
     }
 }

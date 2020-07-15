@@ -162,6 +162,18 @@
     <Compile Include="Controls\ListBoxWithSearch.Designer.cs">
       <DependentUpon>ListBoxWithSearch.cs</DependentUpon>
     </Compile>
+    <Compile Include="Dialogs\EpicAssociation.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\EpicAssociation.Designer.cs">
+      <DependentUpon>EpicAssociation.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\IssueTemplates.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\IssueTemplates.Designer.cs">
+      <DependentUpon>IssueTemplates.cs</DependentUpon>
+    </Compile>
     <Compile Include="Dialogs\ManageIssue.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -213,6 +225,12 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
+    <EmbeddedResource Include="Dialogs\EpicAssociation.resx">
+      <DependentUpon>EpicAssociation.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\IssueTemplates.resx">
+      <DependentUpon>IssueTemplates.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Dialogs\ManageIssue.resx">
       <DependentUpon>ManageIssue.cs</DependentUpon>
     </EmbeddedResource>

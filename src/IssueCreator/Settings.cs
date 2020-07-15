@@ -1,18 +1,43 @@
 ﻿using IssueCreator.Logging;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
 namespace IssueCreator
 {
-    public class Settings
+    public class Settings : INotifyPropertyChanged
     {
         private static readonly byte[] s_entropy = { 23, 61, 24, 8, 77, 52 }; //the entropy
+        private List<string> repositories = new List<string>();
+        private string selectedRepository = string.Empty;
 
-        public List<string> Repositories { get; set; } = new List<string>();
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public List<string> Repositories
+        {
+            get => repositories;
+
+            set
+            {
+                repositories = value;
+                NotifyPropertyChanged();
+            }
+        }
+        public string SelectedRepository
+        {
+            get => selectedRepository;
+
+            set
+            {
+                selectedRepository = value ?? string.Empty;
+                NotifyPropertyChanged();
+            }
+        }
 
         public string ZenHubToken { get; set; } = string.Empty;
 
@@ -104,12 +129,31 @@ namespace IssueCreator
             Settings newSettings = new Settings()
             {
                 Repositories = new List<string>(this.Repositories),
+                SelectedRepository = string.Copy(this.SelectedRepository),
                 ZenHubToken = this.ZenHubToken,
                 GitHubToken = this.GitHubToken,
                 DefaultTitle = this.DefaultTitle,
                 DefaultLabels = new List<string>(this.DefaultLabels)
             };
             return newSettings;
+        }
+
+        public void Initialize(Settings settings)
+        {
+            Repositories = new List<string>(settings.Repositories);
+            SelectedRepository = string.Copy(settings.SelectedRepository);
+            ZenHubToken = settings.ZenHubToken;
+            GitHubToken = settings.GitHubToken;
+            DefaultTitle = settings.DefaultTitle;
+            DefaultLabels = new List<string>(settings.DefaultLabels);
+        }
+
+        private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
         }
     }
 }

@@ -53,6 +53,7 @@ namespace IssueCreator
             this.preferencesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.issuesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.assignIssueToEpicToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadIssueToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.lblEpic = new System.Windows.Forms.Label();
             this.btnRefreshEpics = new System.Windows.Forms.Button();
             this.label8 = new System.Windows.Forms.Label();
@@ -76,7 +77,7 @@ namespace IssueCreator
             this.label1.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.Location = new System.Drawing.Point(54, 111);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(36, 18);
+            this.label1.Size = new System.Drawing.Size(42, 23);
             this.label1.TabIndex = 0;
             this.label1.Text = "Title";
             // 
@@ -86,7 +87,7 @@ namespace IssueCreator
             this.label2.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label2.Location = new System.Drawing.Point(15, 43);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(75, 18);
+            this.label2.Size = new System.Drawing.Size(93, 23);
             this.label2.TabIndex = 2;
             this.label2.Text = "Repository";
             // 
@@ -94,14 +95,16 @@ namespace IssueCreator
             // 
             this.cboAvailableRepos.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.cboAvailableRepos.CausesValidation = false;
             this.cboAvailableRepos.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cboAvailableRepos.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cboAvailableRepos.FormattingEnabled = true;
             this.cboAvailableRepos.Location = new System.Drawing.Point(93, 40);
             this.cboAvailableRepos.Name = "cboAvailableRepos";
-            this.cboAvailableRepos.Size = new System.Drawing.Size(497, 26);
+            this.cboAvailableRepos.Size = new System.Drawing.Size(497, 31);
             this.cboAvailableRepos.Sorted = true;
             this.cboAvailableRepos.TabIndex = 1;
+            this.cboAvailableRepos.SelectedIndexChanged += new System.EventHandler(this.cboAvailableRepos_SelectedIndexChanged);
             this.cboAvailableRepos.SelectedValueChanged += new System.EventHandler(this.CboAvailableRepos_SelectedValueChanged);
             // 
             // label3
@@ -110,7 +113,7 @@ namespace IssueCreator
             this.label3.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label3.Location = new System.Drawing.Point(12, 140);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(78, 18);
+            this.label3.Size = new System.Drawing.Size(99, 23);
             this.label3.TabIndex = 4;
             this.label3.Text = "Description";
             // 
@@ -134,7 +137,7 @@ namespace IssueCreator
             this.label4.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label4.Location = new System.Drawing.Point(56, 299);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(34, 18);
+            this.label4.Size = new System.Drawing.Size(44, 23);
             this.label4.TabIndex = 9;
             this.label4.Text = "Tags";
             // 
@@ -157,7 +160,7 @@ namespace IssueCreator
             this.label5.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label5.Location = new System.Drawing.Point(10, 79);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(80, 18);
+            this.label5.Size = new System.Drawing.Size(99, 23);
             this.label5.TabIndex = 12;
             this.label5.Text = "Assigned to";
             // 
@@ -181,7 +184,7 @@ namespace IssueCreator
             this.label6.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label6.Location = new System.Drawing.Point(90, 299);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(66, 18);
+            this.label6.Size = new System.Drawing.Size(79, 23);
             this.label6.TabIndex = 14;
             this.label6.Text = "Available";
             // 
@@ -192,12 +195,13 @@ namespace IssueCreator
             this.label7.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label7.Location = new System.Drawing.Point(531, 299);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(62, 18);
+            this.label7.Size = new System.Drawing.Size(74, 23);
             this.label7.TabIndex = 15;
             this.label7.Text = "Selected";
             // 
             // statusStrip1
             // 
+            this.statusStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.tssVersion,
             this.tssStatus});
@@ -210,22 +214,23 @@ namespace IssueCreator
             // tssVersion
             // 
             this.tssVersion.Name = "tssVersion";
-            this.tssVersion.Size = new System.Drawing.Size(0, 17);
+            this.tssVersion.Size = new System.Drawing.Size(0, 16);
             // 
             // tssStatus
             // 
             this.tssStatus.Name = "tssStatus";
-            this.tssStatus.Size = new System.Drawing.Size(0, 17);
+            this.tssStatus.Size = new System.Drawing.Size(0, 16);
             // 
             // menuStrip1
             // 
+            this.menuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
             this.editToolStripMenuItem,
             this.issuesToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(605, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(605, 30);
             this.menuStrip1.TabIndex = 19;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -234,13 +239,13 @@ namespace IssueCreator
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(46, 26);
             this.fileToolStripMenuItem.Text = "File";
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(92, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(116, 26);
             this.exitToolStripMenuItem.Text = "E&xit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -249,31 +254,39 @@ namespace IssueCreator
             this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.preferencesToolStripMenuItem});
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
-            this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(49, 26);
             this.editToolStripMenuItem.Text = "Edit";
             // 
             // preferencesToolStripMenuItem
             // 
             this.preferencesToolStripMenuItem.Name = "preferencesToolStripMenuItem";
-            this.preferencesToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
+            this.preferencesToolStripMenuItem.Size = new System.Drawing.Size(168, 26);
             this.preferencesToolStripMenuItem.Text = "Preferences";
             this.preferencesToolStripMenuItem.Click += new System.EventHandler(this.PreferencesToolStripMenuItem_Click);
             // 
             // issuesToolStripMenuItem
             // 
             this.issuesToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.assignIssueToEpicToolStripMenuItem});
+            this.assignIssueToEpicToolStripMenuItem,
+            this.loadIssueToolStripMenuItem});
             this.issuesToolStripMenuItem.Name = "issuesToolStripMenuItem";
-            this.issuesToolStripMenuItem.Size = new System.Drawing.Size(50, 20);
+            this.issuesToolStripMenuItem.Size = new System.Drawing.Size(61, 26);
             this.issuesToolStripMenuItem.Text = "Issues";
             // 
             // assignIssueToEpicToolStripMenuItem
             // 
             this.assignIssueToEpicToolStripMenuItem.Enabled = false;
             this.assignIssueToEpicToolStripMenuItem.Name = "assignIssueToEpicToolStripMenuItem";
-            this.assignIssueToEpicToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.assignIssueToEpicToolStripMenuItem.Size = new System.Drawing.Size(245, 26);
             this.assignIssueToEpicToolStripMenuItem.Text = "Manage issues";
             this.assignIssueToEpicToolStripMenuItem.Click += new System.EventHandler(this.assignIssueToEpicToolStripMenuItem_Click);
+            // 
+            // loadIssueToolStripMenuItem
+            // 
+            this.loadIssueToolStripMenuItem.Name = "loadIssueToolStripMenuItem";
+            this.loadIssueToolStripMenuItem.Size = new System.Drawing.Size(245, 26);
+            this.loadIssueToolStripMenuItem.Text = "Load Issue as Template";
+            this.loadIssueToolStripMenuItem.Click += new System.EventHandler(this.loadIssueToolStripMenuItem_Click);
             // 
             // lblEpic
             // 
@@ -282,7 +295,7 @@ namespace IssueCreator
             this.lblEpic.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblEpic.Location = new System.Drawing.Point(6, 443);
             this.lblEpic.Name = "lblEpic";
-            this.lblEpic.Size = new System.Drawing.Size(84, 18);
+            this.lblEpic.Size = new System.Drawing.Size(105, 23);
             this.lblEpic.TabIndex = 21;
             this.lblEpic.Text = "ZenHub Epic";
             // 
@@ -306,7 +319,7 @@ namespace IssueCreator
             this.label8.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label8.Location = new System.Drawing.Point(29, 475);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(61, 18);
+            this.label8.Size = new System.Drawing.Size(77, 23);
             this.label8.TabIndex = 23;
             this.label8.Text = "Estimate";
             // 
@@ -315,9 +328,9 @@ namespace IssueCreator
             this.chkMakeEpic.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.chkMakeEpic.AutoSize = true;
             this.chkMakeEpic.Font = new System.Drawing.Font("Calibri", 11.25F);
-            this.chkMakeEpic.Location = new System.Drawing.Point(93, 504);
+            this.chkMakeEpic.Location = new System.Drawing.Point(93, 499);
             this.chkMakeEpic.Name = "chkMakeEpic";
-            this.chkMakeEpic.Size = new System.Drawing.Size(112, 22);
+            this.chkMakeEpic.Size = new System.Drawing.Size(138, 27);
             this.chkMakeEpic.TabIndex = 25;
             this.chkMakeEpic.Text = "Create as Epic";
             this.chkMakeEpic.UseVisualStyleBackColor = true;
@@ -329,7 +342,7 @@ namespace IssueCreator
             this.label9.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label9.Location = new System.Drawing.Point(175, 475);
             this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(71, 18);
+            this.label9.Size = new System.Drawing.Size(86, 23);
             this.label9.TabIndex = 26;
             this.label9.Text = "Milestone";
             // 
@@ -342,7 +355,7 @@ namespace IssueCreator
             this.cboMilestones.FormattingEnabled = true;
             this.cboMilestones.Location = new System.Drawing.Point(252, 472);
             this.cboMilestones.Name = "cboMilestones";
-            this.cboMilestones.Size = new System.Drawing.Size(338, 26);
+            this.cboMilestones.Size = new System.Drawing.Size(338, 31);
             this.cboMilestones.Sorted = true;
             this.cboMilestones.TabIndex = 27;
             // 
@@ -352,7 +365,7 @@ namespace IssueCreator
             this.txtEstimate.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtEstimate.Location = new System.Drawing.Point(93, 472);
             this.txtEstimate.Name = "txtEstimate";
-            this.txtEstimate.Size = new System.Drawing.Size(63, 26);
+            this.txtEstimate.Size = new System.Drawing.Size(63, 30);
             this.txtEstimate.TabIndex = 24;
             // 
             // cboEpics
@@ -366,7 +379,7 @@ namespace IssueCreator
             this.cboEpics.IntegralHeight = false;
             this.cboEpics.Location = new System.Drawing.Point(93, 440);
             this.cboEpics.Name = "cboEpics";
-            this.cboEpics.Size = new System.Drawing.Size(400, 26);
+            this.cboEpics.Size = new System.Drawing.Size(400, 31);
             this.cboEpics.Sorted = true;
             this.cboEpics.TabIndex = 7;
             // 
@@ -376,7 +389,7 @@ namespace IssueCreator
             this.lstAvailableTags.Font = new System.Drawing.Font("Calibri", 11.25F);
             this.lstAvailableTags.FormattingEnabled = true;
             this.lstAvailableTags.IntegralHeight = false;
-            this.lstAvailableTags.ItemHeight = 18;
+            this.lstAvailableTags.ItemHeight = 23;
             this.lstAvailableTags.Location = new System.Drawing.Point(93, 320);
             this.lstAvailableTags.Name = "lstAvailableTags";
             this.lstAvailableTags.Size = new System.Drawing.Size(226, 114);
@@ -395,7 +408,7 @@ namespace IssueCreator
             this.cboAssignees.FormattingEnabled = true;
             this.cboAssignees.Location = new System.Drawing.Point(93, 76);
             this.cboAssignees.Name = "cboAssignees";
-            this.cboAssignees.Size = new System.Drawing.Size(497, 26);
+            this.cboAssignees.Size = new System.Drawing.Size(497, 31);
             this.cboAssignees.Sorted = true;
             this.cboAssignees.TabIndex = 2;
             // 
@@ -405,7 +418,7 @@ namespace IssueCreator
             this.lstSelectedTags.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lstSelectedTags.FormattingEnabled = true;
             this.lstSelectedTags.IntegralHeight = false;
-            this.lstSelectedTags.ItemHeight = 18;
+            this.lstSelectedTags.ItemHeight = 23;
             this.lstSelectedTags.Location = new System.Drawing.Point(370, 320);
             this.lstSelectedTags.Name = "lstSelectedTags";
             this.lstSelectedTags.Size = new System.Drawing.Size(220, 114);
@@ -434,7 +447,7 @@ namespace IssueCreator
             this.txtIssueTitle.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtIssueTitle.Location = new System.Drawing.Point(93, 108);
             this.txtIssueTitle.Name = "txtIssueTitle";
-            this.txtIssueTitle.Size = new System.Drawing.Size(497, 26);
+            this.txtIssueTitle.Size = new System.Drawing.Size(497, 30);
             this.txtIssueTitle.TabIndex = 3;
             // 
             // frmMain
@@ -473,6 +486,7 @@ namespace IssueCreator
             this.MinimumSize = new System.Drawing.Size(621, 538);
             this.Name = "frmMain";
             this.Text = "Issue Creator";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMain_FormClosing);
             this.Load += new System.EventHandler(this.FrmMain_Load);
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
@@ -519,6 +533,7 @@ namespace IssueCreator
         private ToolStripMenuItem exitToolStripMenuItem;
         private ToolStripMenuItem issuesToolStripMenuItem;
         private ToolStripMenuItem assignIssueToEpicToolStripMenuItem;
+        private ToolStripMenuItem loadIssueToolStripMenuItem;
     }
 }
 

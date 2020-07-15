@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using ZenHub;
@@ -23,6 +24,8 @@ namespace IssueCreator
         private FileLogger _fileLogger;
         private readonly MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
         private readonly string _cacheFolder;
+
+        public IssueObject LastIssueLoaded { get; internal set; }
 
         public static IssueManager Create(Settings settings, string cacheFolder, FileLogger fileLogger)
         {
@@ -284,7 +287,7 @@ namespace IssueCreator
         public async Task<IssueObject> GetIssueAsync(long repoId, int issueNumber)
         {
             IssueObject issue = await GetValueFromCache(StringTemplate.Issue(repoId, issueNumber), async () => new IssueObject(await _githubClient.Issue.Get(repoId, issueNumber)));
-            return issue;
+           return issue;
         }
 
         public async Task<List<IssueDescription>> GetEpicsAsync(List<string> repositoriesToUse)

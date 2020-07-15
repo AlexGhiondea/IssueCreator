@@ -1,15 +1,9 @@
 ﻿using IssueCreator.Helpers;
 using IssueCreator.Logging;
 using IssueCreator.Models;
-using Octokit;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -17,9 +11,10 @@ namespace IssueCreator.Dialogs
 {
     public partial class ManageIssue : Form
     {
-        private IssueManager _issueManager;
-        private FileLogger _logger;
-        private Settings _settings;
+        protected IssueManager _issueManager;
+        protected FileLogger _logger;
+        protected Settings _settings;
+        protected IssueObject LastIssueLoaded { get; private set; }
 
         public ManageIssue()
         {
@@ -31,9 +26,16 @@ namespace IssueCreator.Dialogs
             _issueManager = issueManager;
             _logger = logger;
             _settings = settings;
-
-            cboEpics.Items.AddRange(epicList);
+            if(epicList != null)
+            {
+                cboEpics.Items.AddRange(epicList);
+            }
+            
             cboAvailableRepos.Items.AddRange(settings.Repositories.ToArray());
+            if(cboAvailableRepos.Items.Count == 1)
+            {
+                cboAvailableRepos.SelectedIndex = 0;
+            }
         }
 
         private void btnClose_Click(object sender, EventArgs e)
@@ -41,42 +43,23 @@ namespace IssueCreator.Dialogs
             this.Close();
         }
 
-        private async void btnAdd_Click(object sender, EventArgs e)
+        protected async Task ExecuteIssueOperation(Func<long, int, long, int, Task<bool>> action, string scopeText)
         {
-            using IDisposable scope = _logger.CreateScope("Add issue to epic");
-            await ExecuteIssueOperation(_issueManager.AddIssueToEpicAsync);
-        }
+            using IDisposable scope = _logger.CreateScope(scopeText);
+            
+            setValidation(true);
 
-        private async void btnRemove_Click(object sender, EventArgs e)
-        {
-            using IDisposable scope = _logger.CreateScope("Remove issue to epic");
-            await ExecuteIssueOperation(_issueManager.RemoveIssueFromEpicAsync);
-        }
-
-        private async Task ExecuteIssueOperation(Func<long, int, long, int, Task<bool>> action)
-        {
-            if (!int.TryParse(txtIssueNumber.Text, out int issueNumber))
+            if (!this.ValidateChildren())
             {
-                MessageBox.Show("Please specify a number for the issue");
+                return;
             }
-
-            if (cboAvailableRepos.SelectedItem == null)
-            {
-                MessageBox.Show("Please select a repository");
-            }
-
-            if (cboEpics.SelectedItem == null)
-            {
-                MessageBox.Show("Please select an epic");
-            }
-
             // get the repository
             (string owner, string repo) = UIHelpers.GetRepoOwner(cboAvailableRepos.SelectedItem);
 
             RepositoryInfo repoFromGH = await _issueManager.GetRepositoryAsync(owner, repo);
             IssueDescription epicInfo = cboEpics.SelectedItem as IssueDescription;
 
-            bool result = await action(epicInfo.Repo.Id, epicInfo.Issue.Number, repoFromGH.Id, issueNumber);
+            bool result = await action(epicInfo.Repo.Id, epicInfo.Issue.Number, repoFromGH.Id, int.Parse(txtIssueNumber.Text));
 
             if (!result)
             {
@@ -86,6 +69,13 @@ namespace IssueCreator.Dialogs
             {
                 MessageBox.Show("Done!");
             }
+        }
+
+        private async Task<bool> ExecuteIssueOperationInternal(long repoId, Func<long, int, long, int, Task<bool>> action)
+        {
+            IssueDescription epicInfo = cboEpics.SelectedItem as IssueDescription;
+
+            return await action(epicInfo.Repo.Id, epicInfo.Issue.Number, repoId, int.Parse(txtIssueNumber.Text));
         }
 
         private async void btnBrowseEpic_Click(object sender, EventArgs e)
@@ -110,9 +100,13 @@ namespace IssueCreator.Dialogs
         private async void txtIssueNumber_Leave(object sender, EventArgs e)
         {
             using IDisposable scope = _logger.CreateScope("Focus lost on issue number box. Attempting to retrieve the issue title.");
+            await LoadIssueDetails();
+        }
 
+        protected async Task LoadIssueDetails()
+        {
             // if we can't parse the number, don't show it.
-            if (!int.TryParse(txtIssueNumber.Text, out int issueNumber))
+            if (!txtIssueNumber.CausesValidation || !int.TryParse(txtIssueNumber.Text, out int issueNumber))
             {
                 return;
             }
@@ -127,11 +121,65 @@ namespace IssueCreator.Dialogs
 
                 IssueObject issue = await _issueManager.GetIssueAsync(repoFromGH.Id, issueNumber);
 
+                _issueManager.LastIssueLoaded = issue;
                 lblIssueTitle.Text = issue.Title;
+
             }
-            catch{
+            catch
+            {
                 lblIssueTitle.Text = "!!! Could not find issue !!!";
             }
+        }
+
+        private void setValidation(bool enabled)
+        {
+            cboEpics.CausesValidation = enabled;
+            cboAvailableRepos.CausesValidation = enabled;
+            txtIssueNumber.CausesValidation = enabled;
+        }
+
+        private void cboEpics_Validating(object sender, CancelEventArgs e)
+        {
+            if (cboEpics.SelectedItem == null)
+            {
+                MessageBox.Show("Please select an epic");
+                e.Cancel = true;
+            }
+            else
+            {
+                e.Cancel = false;
+            }
+        }
+
+        private void cboAvailableRepos_Validating(object sender, CancelEventArgs e)
+        {
+            if (cboAvailableRepos.SelectedItem == null)
+            {
+                MessageBox.Show("Please select a repository");
+                e.Cancel = true;
+            }
+            else
+            {
+                e.Cancel = false;
+            }
+        }
+
+        private void txtIssueNumber_Validating(object sender, CancelEventArgs e)
+        {
+            if (!int.TryParse(txtIssueNumber.Text, out int _))
+            {
+                MessageBox.Show("Please specify a number for the issue");
+                e.Cancel = true;
+            }
+            else
+            {
+                e.Cancel = false;
+            }
+        }
+
+        private void txtIssueNumber_TextChanged(object sender, EventArgs e)
+        {
+            txtIssueNumber.CausesValidation = true;
         }
     }
 }
