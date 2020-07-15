@@ -1,0 +1,40 @@
+name: Publish app to Azure Blob
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+ release:
+  types: [published]
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v1
+      with:
+        nuget-version: latest
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.0.0
+
+    - name: Restore
+      run: nuget restore ./src/IssueCreator.sln
+
+    - name: Build
+      run: msbuild ./src/IssueCreator.sln /p:Configuration=Release
+
+    - name: Publish ClickOnce to Local folder
+      run: msbuild ./src/IssueCreator.sln /p:Configuration=Release /t:Publish
+
+    - name: Push Publish folder to Azure Blob
+      - uses: actions/checkout@v2
+      - uses: bacongobbler/azure-blob-storage-upload@v1.1.1
+        with:
+          source_dir: ./bin/src/IssueCreator/Debug/app.publish
+          container_name: testContainer
+          connection_string: ${{ secrets.ConnectionString }}
+          sync: false
+   
