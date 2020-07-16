@@ -220,9 +220,11 @@ namespace IssueCreator
             assignIssueToEpicToolStripMenuItem.Enabled = false;
             preferencesToolStripMenuItem.Enabled = false;
             tssStatus.Text = "Loading ZenHub Epics...";
-
+            s_issueManager.IssueLoadedForLoadAllIssuesEvent += issueManager_IssueLoadedForLoadAllIssuesEvent;
             // retrieve the issues.
             List<IssueDescription> issues = await s_issueManager.GetEpicsAsync(s_settings.Repositories);
+
+            s_issueManager.IssueLoadedForLoadAllIssuesEvent -= issueManager_IssueLoadedForLoadAllIssuesEvent;
 
             // add just the open issues
             cboEpics.Items.Clear();
@@ -234,6 +236,11 @@ namespace IssueCreator
             btnRefreshEpics.Enabled = true;
 
             tssStatus.Text = $"Loaded {cboEpics.Items.Count} Epics from {s_settings.Repositories.Count} repositories.";
+        }
+
+        private void issueManager_IssueLoadedForLoadAllIssuesEvent(object sender, IssueObject issue)
+        {
+            tssStatus.Text = $"Loading ZenHub Epics... Found issue #{issue.Number}";
         }
 
 
@@ -471,7 +478,7 @@ namespace IssueCreator
         {
             using IDisposable scope = s_logger.CreateScope("Open issue as template dialog");
             IssueTemplates dlg = new IssueTemplates(s_issueManager, s_settings, s_logger);
-            s_issueManager.IssueLoadedEvent += issueManager_IssueLoadedEvent;
+            s_issueManager.IssueLoadedForTemmplateEvent += issueManager_IssueLoadedEvent;
             var result = dlg.ShowDialog(this);  
         }
 
@@ -481,7 +488,7 @@ namespace IssueCreator
             s_model.Description = issue.Body;
             s_model.Labels = issue.Tags;
             SetSelectedTags(s_model.Labels);
-            s_issueManager.IssueLoadedEvent -= issueManager_IssueLoadedEvent;
+            s_issueManager.IssueLoadedForTemmplateEvent -= issueManager_IssueLoadedEvent;
         }
 
         private void cboAvailableRepos_SelectedIndexChanged(object sender, EventArgs e)

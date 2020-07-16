@@ -24,11 +24,27 @@ namespace IssueCreator
         private readonly MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
         private readonly string _cacheFolder;
         public delegate void IssueLoadedDelegate(object sender, IssueObject issue);
-        public event IssueLoadedDelegate IssueLoadedEvent;
+        public event IssueLoadedDelegate IssueLoadedForTemmplateEvent;
+        public event IssueLoadedDelegate IssueLoadedForEpicBrowseEvent;
+        public event IssueLoadedDelegate IssueLoadedForLoadAllIssuesEvent;
 
-        protected virtual void OnIssueLoaded(IssueObject issue)
+        protected virtual void OnIssueLoaded(IssueObject issue, IssueLoadScenario loadScenario)
         {
-            IssueLoadedEvent?.Invoke(this, issue);
+            switch (loadScenario)
+            {
+                case IssueLoadScenario.BrowseEpic:
+                    IssueLoadedForEpicBrowseEvent?.Invoke(this, issue);
+                    break;
+                case IssueLoadScenario.LoadAllIssues:
+                    IssueLoadedForLoadAllIssuesEvent?.Invoke(this, issue);
+                    break;
+                case IssueLoadScenario.LoadIssueAsTemplate:
+                    IssueLoadedForTemmplateEvent?.Invoke(this, issue);
+                    break;
+                default:
+                    break;
+            }
+            
         }
 
         public static IssueManager Create(Settings settings, string cacheFolder, FileLogger fileLogger)
@@ -288,11 +304,11 @@ namespace IssueCreator
             return (true, string.Empty);
         }
 
-        public async Task<IssueObject> GetIssueAsync(long repoId, int issueNumber)
+        public async Task<IssueObject> GetIssueAsync(long repoId, int issueNumber, IssueLoadScenario loadScenario)
         {
             IssueObject issue = await GetValueFromCache(StringTemplate.Issue(repoId, issueNumber), async () => new IssueObject(await _githubClient.Issue.Get(repoId, issueNumber).ConfigureAwait(false)));
 
-            OnIssueLoaded(issue);
+            OnIssueLoaded(issue, loadScenario);
             return issue;
         }
 
@@ -325,7 +341,7 @@ namespace IssueCreator
                         long repoId = epic.RepositoryId;
                         int issueNumber = epic.IssueNumber;
                         // from the issue link, get the cached issue from the repo
-                        IssueObject issue = await GetIssueAsync(repoId, issueNumber);
+                        IssueObject issue = await GetIssueAsync(repoId, issueNumber, IssueLoadScenario.LoadAllIssues);
 
                         result.Add(new IssueDescription() { Issue = issue, Repo = gitHubRepoObj });
                     }
