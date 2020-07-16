@@ -121,7 +121,6 @@ namespace IssueCreator.Dialogs
 
                 IssueObject issue = await _issueManager.GetIssueAsync(repoFromGH.Id, issueNumber);
 
-                _issueManager.LastIssueLoaded = issue;
                 lblIssueTitle.Text = issue.Title;
 
             }

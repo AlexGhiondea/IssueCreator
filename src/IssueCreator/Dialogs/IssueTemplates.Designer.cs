@@ -63,7 +63,6 @@
             // 
             // btnLoad
             // 
-            this.btnLoad.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.btnLoad.Font = new System.Drawing.Font("Calibri", 12F);
             this.btnLoad.Location = new System.Drawing.Point(598, 109);
             this.btnLoad.Name = "btnLoad";

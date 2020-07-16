@@ -471,14 +471,17 @@ namespace IssueCreator
         {
             using IDisposable scope = s_logger.CreateScope("Open issue as template dialog");
             IssueTemplates dlg = new IssueTemplates(s_issueManager, s_settings, s_logger);
-            var result = dlg.ShowDialog(this);
-            if(result == DialogResult.OK)
-            {
-                s_model.Title = s_issueManager.LastIssueLoaded.Title;
-                s_model.Description = s_issueManager.LastIssueLoaded.Body;
-                s_model.Labels = s_issueManager.LastIssueLoaded.Tags;
-                SetSelectedTags(s_model.Labels);
-            }
+            s_issueManager.IssueLoadedEvent += issueManager_IssueLoadedEvent;
+            var result = dlg.ShowDialog(this);  
+        }
+
+        private void issueManager_IssueLoadedEvent(object sender, IssueObject issue)
+        {
+            s_model.Title = issue.Title;
+            s_model.Description = issue.Body;
+            s_model.Labels = issue.Tags;
+            SetSelectedTags(s_model.Labels);
+            s_issueManager.IssueLoadedEvent -= issueManager_IssueLoadedEvent;
         }
 
         private void cboAvailableRepos_SelectedIndexChanged(object sender, EventArgs e)

@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using ZenHub;
@@ -24,8 +23,13 @@ namespace IssueCreator
         private FileLogger _fileLogger;
         private readonly MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
         private readonly string _cacheFolder;
+        public delegate void IssueLoadedDelegate(object sender, IssueObject issue);
+        public event IssueLoadedDelegate IssueLoadedEvent;
 
-        public IssueObject LastIssueLoaded { get; internal set; }
+        protected virtual void OnIssueLoaded(IssueObject issue)
+        {
+            IssueLoadedEvent?.Invoke(this, issue);
+        }
 
         public static IssueManager Create(Settings settings, string cacheFolder, FileLogger fileLogger)
         {
@@ -78,7 +82,7 @@ namespace IssueCreator
         public async Task<IEnumerable<IssueMilestone>> GetMilestonesAsync(string owner, string repo)
         {
             using IDisposable scope = _fileLogger.CreateScope("Retrieving milestones");
-            IEnumerable<IssueMilestone> milestones = await GetValueFromCache(StringTemplate.Milestones(owner, repo), async () => IssueMilestone.FromMilestoneList(await _githubClient.Issue.Milestone.GetAllForRepository(owner, repo)));
+            IEnumerable<IssueMilestone> milestones = await GetValueFromCache(StringTemplate.Milestones(owner, repo), async () => IssueMilestone.FromMilestoneList(await _githubClient.Issue.Milestone.GetAllForRepository(owner, repo).ConfigureAwait(false)));
 
             return milestones;
         }
@@ -86,7 +90,7 @@ namespace IssueCreator
         public async Task<List<RepoLabel>> GetLabelsAsync(string owner, string repo)
         {
             using IDisposable scope = _fileLogger.CreateScope("Retrieving labels");
-            List<RepoLabel> labels = await GetValueFromCache(StringTemplate.Labels(owner, repo), async () => RepoLabel.FromLabelList(await _githubClient.Issue.Labels.GetAllForRepository(owner, repo)));
+            List<RepoLabel> labels = await GetValueFromCache(StringTemplate.Labels(owner, repo), async () => RepoLabel.FromLabelList(await _githubClient.Issue.Labels.GetAllForRepository(owner, repo).ConfigureAwait(false)));
 
             return labels;
         }
@@ -95,7 +99,7 @@ namespace IssueCreator
         {
             using IDisposable scope = _fileLogger.CreateScope("Retrieving contributors");
 
-            List<GitHubContributor> contributors = await GetValueFromCache(StringTemplate.Contributors(owner, repo), async () => GitHubContributor.FromContributorsList(await _githubClient.Repository.GetAllContributors(owner, repo)));
+            List<GitHubContributor> contributors = await GetValueFromCache(StringTemplate.Contributors(owner, repo), async () => GitHubContributor.FromContributorsList(await _githubClient.Repository.GetAllContributors(owner, repo).ConfigureAwait(false)));
             return contributors;
         }
 
@@ -197,7 +201,7 @@ namespace IssueCreator
 
         public async Task<RepositoryInfo> GetRepositoryAsync(string owner, string repo)
         {
-            return await GetValueFromCache(StringTemplate.Repo(owner, repo), async () => new RepositoryInfo(await _githubClient.Repository.Get(owner, repo)));
+            return await GetValueFromCache(StringTemplate.Repo(owner, repo), async () => new RepositoryInfo(await _githubClient.Repository.Get(owner, repo).ConfigureAwait(false)));
         }
 
         internal async Task<(bool, string)> TryCreateNewIssueAsync(IssueToCreate issueToCreate)
@@ -286,8 +290,10 @@ namespace IssueCreator
 
         public async Task<IssueObject> GetIssueAsync(long repoId, int issueNumber)
         {
-            IssueObject issue = await GetValueFromCache(StringTemplate.Issue(repoId, issueNumber), async () => new IssueObject(await _githubClient.Issue.Get(repoId, issueNumber)));
-           return issue;
+            IssueObject issue = await GetValueFromCache(StringTemplate.Issue(repoId, issueNumber), async () => new IssueObject(await _githubClient.Issue.Get(repoId, issueNumber).ConfigureAwait(false)));
+
+            OnIssueLoaded(issue);
+            return issue;
         }
 
         public async Task<List<IssueDescription>> GetEpicsAsync(List<string> repositoriesToUse)
@@ -312,7 +318,7 @@ namespace IssueCreator
 
                     _fileLogger.Log($"Getting epics for repo {owner}\\{repo}");
 
-                    EpicList epicList = await GetValueFromCache(StringTemplate.Epic(owner, repo), async () => (await _zenHubClient.GetRepositoryClient(gitHubRepoObj.Id).GetEpicsAsync()).Value, DateTimeOffset.Now.AddHours(1));
+                    EpicList epicList = await GetValueFromCache(StringTemplate.Epic(owner, repo), async () => (await _zenHubClient.GetRepositoryClient(gitHubRepoObj.Id).GetEpicsAsync().ConfigureAwait(false)).Value, DateTimeOffset.Now.AddHours(1));
 
                     foreach (EpicInfo epic in epicList.Epics)
                     {
