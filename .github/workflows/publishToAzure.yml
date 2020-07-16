@@ -34,5 +34,5 @@ jobs:
       with:
         connection-string: ${{ secrets.ConnectionString }}
         name: 'installer/..'
-        container: 'testcontainer'
+        container: 'installer'
         path: ./src/IssueCreator/bin/Release/app.publish/
