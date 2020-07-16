@@ -33,6 +33,6 @@ jobs:
       uses: fixpoint/azblob-upload-artifact@v4
       with:
         connection-string: ${{ secrets.ConnectionString }}
-        name: app.publish
-        container: testContainer
-        path: ./bin/src/IssueCreator/Debug/app.publish
+        name: 'installer/..'
+        container: 'testcontainer'
+        path: ./src/IssueCreator/bin/Release/app.publish/
