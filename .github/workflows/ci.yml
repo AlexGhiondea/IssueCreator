@@ -1,4 +1,4 @@
-name: ci
+name: Build Application
 
 on:
 - pull_request
@@ -24,8 +24,3 @@ jobs:
 
     - name: Build
       run: msbuild ./src/IssueCreator.sln /p:Configuration=Release
-
-    # - name: Deploy
-    #   if: ${{ github.event_name == 'push' }}
-    #   run: >
-    #     echo TODO: Push files to container
