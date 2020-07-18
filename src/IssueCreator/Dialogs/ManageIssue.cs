@@ -71,13 +71,6 @@ namespace IssueCreator.Dialogs
             }
         }
 
-        private async Task<bool> ExecuteIssueOperationInternal(long repoId, Func<long, int, long, int, Task<bool>> action)
-        {
-            IssueDescription epicInfo = cboEpics.SelectedItem as IssueDescription;
-
-            return await action(epicInfo.Repo.Id, epicInfo.Issue.Number, repoId, int.Parse(txtIssueNumber.Text));
-        }
-
         private async void btnBrowseEpic_Click(object sender, EventArgs e)
         {
             using IDisposable scope = _logger.CreateScope("Browse epic");
