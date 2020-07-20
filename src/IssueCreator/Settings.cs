@@ -141,7 +141,7 @@ namespace IssueCreator
         public void Initialize(Settings settings)
         {
             Repositories = new List<string>(settings.Repositories);
-            SelectedRepository = string.Copy(settings.SelectedRepository);
+            SelectedRepository = settings.SelectedRepository;
             ZenHubToken = settings.ZenHubToken;
             GitHubToken = settings.GitHubToken;
             DefaultTitle = settings.DefaultTitle;

@@ -24,22 +24,22 @@ namespace IssueCreator
         private readonly MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
         private readonly string _cacheFolder;
         public delegate void IssueLoadedDelegate(object sender, IssueObject issue);
-        public event IssueLoadedDelegate IssueLoadedForTemmplateEvent;
-        public event IssueLoadedDelegate IssueLoadedForEpicBrowseEvent;
-        public event IssueLoadedDelegate IssueLoadedForLoadAllIssuesEvent;
+        public event IssueLoadedDelegate TemplateIssueLoaded;
+        public event IssueLoadedDelegate BrowseableIssueLoaded;
+        public event IssueLoadedDelegate IssueLoaded;
 
         protected virtual void OnIssueLoaded(IssueObject issue, IssueLoadScenario loadScenario)
         {
             switch (loadScenario)
             {
                 case IssueLoadScenario.BrowseEpic:
-                    IssueLoadedForEpicBrowseEvent?.Invoke(this, issue);
+                    BrowseableIssueLoaded?.Invoke(this, issue);
                     break;
                 case IssueLoadScenario.LoadAllIssues:
-                    IssueLoadedForLoadAllIssuesEvent?.Invoke(this, issue);
+                    IssueLoaded?.Invoke(this, issue);
                     break;
                 case IssueLoadScenario.LoadIssueAsTemplate:
-                    IssueLoadedForTemmplateEvent?.Invoke(this, issue);
+                    TemplateIssueLoaded?.Invoke(this, issue);
                     break;
                 default:
                     break;
@@ -304,7 +304,13 @@ namespace IssueCreator
             return (true, string.Empty);
         }
 
-        public async Task<IssueObject> GetIssueAsync(long repoId, int issueNumber, IssueLoadScenario loadScenario)
+        public async Task<IssueObject> GetAllIssueAsync(long repoId, int issueNumber) => await GetIssueAsync(repoId, issueNumber, IssueLoadScenario.LoadAllIssues);
+
+        public async Task<IssueObject> GetTemplateIssueAsync(long repoId, int issueNumber) => await GetIssueAsync(repoId, issueNumber, IssueLoadScenario.LoadIssueAsTemplate);
+
+        public async Task<IssueObject> GetBrowseableIssueAsync(long repoId, int issueNumber) => await GetIssueAsync(repoId, issueNumber, IssueLoadScenario.BrowseEpic);
+
+        private async Task<IssueObject> GetIssueAsync(long repoId, int issueNumber, IssueLoadScenario loadScenario)
         {
             IssueObject issue = await GetValueFromCache(StringTemplate.Issue(repoId, issueNumber), async () => new IssueObject(await _githubClient.Issue.Get(repoId, issueNumber).ConfigureAwait(false)));
 

@@ -29,7 +29,7 @@ namespace IssueCreator.Dialogs
                 return;
             }
 
-            await LoadIssueDetails(IssueLoadScenario.LoadIssueAsTemplate);
+            await LoadIssueTemplateDetailsAsync();
             this.DialogResult = DialogResult.OK;
             this.Close();
         }

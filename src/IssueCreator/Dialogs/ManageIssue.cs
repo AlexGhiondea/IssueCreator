@@ -78,7 +78,7 @@ namespace IssueCreator.Dialogs
             {
                 IssueDescription issue = cboEpics.SelectedItem as IssueDescription;
 
-                string link = (await _issueManager.GetIssueAsync(issue.Repo.Id, issue.Issue.Number, IssueLoadScenario.BrowseEpic)).HtmlUrl;
+                string link = (await _issueManager.GetBrowseableIssueAsync(issue.Repo.Id, issue.Issue.Number)).HtmlUrl;
                 _logger.Log($"Found issue html link: {link}");
 
                 // this is a point-in-time check until the updated cache catches up.
@@ -93,10 +93,14 @@ namespace IssueCreator.Dialogs
         private async void txtIssueNumber_Leave(object sender, EventArgs e)
         {
             using IDisposable scope = _logger.CreateScope("Focus lost on issue number box. Attempting to retrieve the issue title.");
-            await LoadIssueDetails(IssueLoadScenario.BrowseEpic);
+            await LoadEpicDetailsAsync();
         }
 
-        protected async Task LoadIssueDetails(IssueLoadScenario loadScenario)
+        protected async Task LoadEpicDetailsAsync() => await LoadIssueDetails(IssueLoadScenario.BrowseEpic);
+
+        protected async Task LoadIssueTemplateDetailsAsync() => await LoadIssueDetails(IssueLoadScenario.LoadIssueAsTemplate);
+
+        private async Task LoadIssueDetails(IssueLoadScenario loadScenario)
         {
             // if we can't parse the number, don't show it.
             if (!txtIssueNumber.CausesValidation || !int.TryParse(txtIssueNumber.Text, out int issueNumber))
@@ -112,7 +116,12 @@ namespace IssueCreator.Dialogs
 
                 RepositoryInfo repoFromGH = await _issueManager.GetRepositoryAsync(owner, repo);
 
-                IssueObject issue = await _issueManager.GetIssueAsync(repoFromGH.Id, issueNumber, loadScenario);
+                IssueObject issue = loadScenario switch {
+                    IssueLoadScenario.BrowseEpic => await _issueManager.GetBrowseableIssueAsync(repoFromGH.Id, issueNumber),
+                    IssueLoadScenario.LoadAllIssues => await _issueManager.GetAllIssueAsync(repoFromGH.Id, issueNumber),
+                    IssueLoadScenario.LoadIssueAsTemplate => await _issueManager.GetTemplateIssueAsync(repoFromGH.Id, issueNumber),
+                    _ => throw new InvalidOperationException("Invalid IssueLoadScenario")
+                };
 
                 lblIssueTitle.Text = issue.Title;
 
