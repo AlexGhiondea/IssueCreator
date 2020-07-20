@@ -9,23 +9,23 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Net.Http;
-using Octokit;
 using IssueCreator.Logging;
 using IssueCreator.Helpers;
-using System.CodeDom;
 
 namespace IssueCreator
 {
     public partial class frmMain : Form
     {
-        private static Settings s_settings;
+        private static Settings s_settings = new Settings();
         private static IssueManager s_issueManager;
+        private static IssueToCreate s_model = new IssueToCreate();
         private static IssueToCreate s_previouslyCreatedIssue;
         private static FileLogger s_logger;
 
         private static string SettingsFolder;
         private static string SettingsFile;
+
+        private (string owner, string repo) selectedRepo => UIHelpers.GetRepoOwner(s_settings.SelectedRepository);
 
         private static string CacheFolder
         {
@@ -72,6 +72,11 @@ namespace IssueCreator
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
             InitializeComponent();
+
+            txtIssueTitle.DataBindings.Add(nameof(txtIssueTitle.Text), s_model, nameof(s_model.Title), false, DataSourceUpdateMode.OnPropertyChanged);
+            txtEstimate.DataBindings.Add(nameof(txtEstimate.Text), s_model, nameof(s_model.Estimate), false, DataSourceUpdateMode.OnPropertyChanged);
+            txtDescription.DataBindings.Add(nameof(txtDescription.Text), s_model, nameof(s_model.Description), false, DataSourceUpdateMode.OnPropertyChanged);
+            cboAvailableRepos.DataBindings.Add(nameof(cboAvailableRepos.SelectedItem), s_settings, nameof(s_settings.SelectedRepository), false, DataSourceUpdateMode.OnPropertyChanged);
         }
 
 #pragma warning disable 1998 //We want a fire and forget async method here.
@@ -81,7 +86,7 @@ namespace IssueCreator
 
             using IDisposable scope = s_logger.CreateScope("Loading main form");
 
-            s_settings = Settings.Deserialize(SettingsFile, s_logger);
+            s_settings.Initialize(Settings.Deserialize(SettingsFile, s_logger));
 
             s_issueManager = IssueManager.Create(s_settings, CacheFolder, s_logger);
 
@@ -128,10 +133,11 @@ namespace IssueCreator
             {
                 cboAvailableRepos.Items.Add(item);
             }
+            cboAvailableRepos.SelectedItem = s_settings.SelectedRepository;
 
             if (s_settings.DefaultTitle != null)
             {
-                txtIssueTitle.Text = s_settings.DefaultTitle;
+                s_model.Title = s_settings.DefaultTitle;
             }
 
             s_issueManager.DeserializeCacheDataFromFolder(CacheFolder);
@@ -142,8 +148,6 @@ namespace IssueCreator
 
         private async void BtnCreateIssue_Click(object sender, EventArgs e)
         {
-            (string owner, string repo) = UIHelpers.GetRepoOwner(cboAvailableRepos.SelectedItem);
-
             // build up the list of labels to appen
             List<string> selectedLabels = new List<string>();
             foreach (object item in lstSelectedTags.Items)
@@ -153,15 +157,15 @@ namespace IssueCreator
 
             IssueToCreate issueToCreate = new IssueToCreate()
             {
-                Repository = repo,
-                Organization = owner,
+                Repository = selectedRepo.repo,
+                Organization = selectedRepo.owner,
                 AssignedTo = cboAssignees.Text,
-                Title = txtIssueTitle.Text,
-                Description = txtDescription.Text,
+                Title = s_model.Title,
+                Description = s_model.Description,
                 Labels = selectedLabels,
                 Epic = (cboEpics.SelectedItem as IssueDescription),
                 Milestone = (cboMilestones.SelectedItem as IssueMilestone),
-                Estimate = txtEstimate.Text,
+                Estimate = s_model.Estimate,
                 CreateAsEpic = chkMakeEpic.Checked
             };
 
@@ -197,6 +201,7 @@ namespace IssueCreator
 
         private void CboAvailableRepos_SelectedValueChanged(object sender, EventArgs e)
         {
+            s_settings.SelectedRepository = cboAvailableRepos.SelectedItem as string;
             UpdateLabelListAsync();
             UpdateMilestoneListAsync();
             UpdateAssigneesListAsync();
@@ -215,9 +220,11 @@ namespace IssueCreator
             assignIssueToEpicToolStripMenuItem.Enabled = false;
             preferencesToolStripMenuItem.Enabled = false;
             tssStatus.Text = "Loading ZenHub Epics...";
-
+            s_issueManager.IssueLoaded += issueManager_IssueLoadedForLoadAllIssuesEvent;
             // retrieve the issues.
             List<IssueDescription> issues = await s_issueManager.GetEpicsAsync(s_settings.Repositories);
+
+            s_issueManager.IssueLoaded -= issueManager_IssueLoadedForLoadAllIssuesEvent;
 
             // add just the open issues
             cboEpics.Items.Clear();
@@ -231,6 +238,11 @@ namespace IssueCreator
             tssStatus.Text = $"Loaded {cboEpics.Items.Count} Epics from {s_settings.Repositories.Count} repositories.";
         }
 
+        private void issueManager_IssueLoadedForLoadAllIssuesEvent(object sender, IssueObject issue)
+        {
+            tssStatus.Text = $"Loading ZenHub Epics... Found issue #{issue.Number}";
+        }
+
 
         #region Helpers
         private void MoveItem(ListBoxWithSearch source, ListBoxWithSearch dest)
@@ -239,14 +251,33 @@ namespace IssueCreator
             {
                 dest.Items.Add(source.SelectedItem);
                 source.Items.Remove(source.SelectedItem);
+                if(dest == lstSelectedTags)
+                {
+                    s_model.Labels.Add(source.SelectedItem as string);
+                }
+                else
+                {
+                    s_model.Labels.Remove(source.SelectedItem as string);
+                }
             }
+        }
+
+        private void SetSelectedTags(List<string> tags)
+        {
+            lstAvailableTags.Items.AddRange(lstSelectedTags.Items);
+            foreach (var tag in tags)
+            {
+                if(tag != null)
+                {
+                    lstSelectedTags.Items.Add(tag);
+                }
+            }
+            
         }
 
         private async void UpdateMilestoneListAsync()
         {
-            (string owner, string repository) = UIHelpers.GetRepoOwner(cboAvailableRepos.SelectedItem);
-
-            IEnumerable<IssueMilestone> milestones = await s_issueManager.GetMilestonesAsync(owner, repository);
+            IEnumerable<IssueMilestone> milestones = await s_issueManager.GetMilestonesAsync(selectedRepo.owner, selectedRepo.repo);
 
             cboMilestones.Enabled = false;
 
@@ -281,9 +312,7 @@ namespace IssueCreator
 
         private async void UpdateLabelListAsync()
         {
-            (string owner, string repository) = UIHelpers.GetRepoOwner(cboAvailableRepos.SelectedItem);
-
-            List<RepoLabel> labels = await s_issueManager.GetLabelsAsync(owner, repository);
+            List<RepoLabel> labels = await s_issueManager.GetLabelsAsync(selectedRepo.owner, selectedRepo.repo);
 
             if (labels == null)
             {
@@ -325,11 +354,9 @@ namespace IssueCreator
 
         private async void UpdateAssigneesListAsync()
         {
-            (string owner, string repo) = UIHelpers.GetRepoOwner(cboAvailableRepos.SelectedItem);
-
             cboAssignees.Enabled = false;
 
-            List<Models.GitHubContributor> contributors = await s_issueManager.GetContributorsAsync(owner, repo);
+            List<Models.GitHubContributor> contributors = await s_issueManager.GetContributorsAsync(selectedRepo.owner, selectedRepo.repo);
 
             cboAssignees.Items.Clear();
             foreach (Models.GitHubContributor item in contributors)
@@ -443,8 +470,36 @@ namespace IssueCreator
             object[] epics = new object[cboEpics.Items.Count];
             cboEpics.Items.CopyTo(epics, 0);
 
-            ManageIssue addTo = new ManageIssue(s_issueManager, s_settings, s_logger, epics);
+            ManageIssue addTo = new EpicAssociation(s_issueManager, s_settings, s_logger, epics);
             addTo.ShowDialog(this);
+        }
+
+        private void loadIssueToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using IDisposable scope = s_logger.CreateScope("Open issue as template dialog");
+            IssueTemplates dlg = new IssueTemplates(s_issueManager, s_settings, s_logger);
+            s_issueManager.TemplateIssueLoaded += issueManager_IssueLoadedEvent;
+            var result = dlg.ShowDialog(this);  
+        }
+
+        private void issueManager_IssueLoadedEvent(object sender, IssueObject issue)
+        {
+            s_model.Title = issue.Title;
+            s_model.Description = issue.Body;
+            s_model.Labels = issue.Tags;
+            SetSelectedTags(s_model.Labels);
+            s_issueManager.TemplateIssueLoaded -= issueManager_IssueLoadedEvent;
+        }
+
+        private void cboAvailableRepos_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            s_settings.SelectedRepository = cboAvailableRepos.SelectedItem as string;
+        }
+
+        private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // save the settings to disk
+            s_settings.Serialize(SettingsFile, s_logger);
         }
     }
 }

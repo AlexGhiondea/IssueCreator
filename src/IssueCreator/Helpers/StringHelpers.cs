@@ -79,7 +79,7 @@
             return (0);
         }
 
-        public static (string, string) GetOwnerAndRepoFromString(string input)
+        public static (string owner, string repo) GetOwnerAndRepoFromString(string input)
         {
             string[] parts = input.Split('\\');
             return (parts[0], parts[1]);

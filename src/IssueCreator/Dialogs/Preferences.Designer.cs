@@ -88,7 +88,7 @@ namespace IssueCreator.Dialogs
             this.label2.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label2.Location = new System.Drawing.Point(12, 207);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(100, 19);
+            this.label2.Size = new System.Drawing.Size(127, 24);
             this.label2.TabIndex = 11;
             this.label2.Text = "ZenHub Token";
             // 
@@ -98,7 +98,7 @@ namespace IssueCreator.Dialogs
             this.linkLabel1.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.linkLabel1.Location = new System.Drawing.Point(217, 177);
             this.linkLabel1.Name = "linkLabel1";
-            this.linkLabel1.Size = new System.Drawing.Size(285, 19);
+            this.linkLabel1.Size = new System.Drawing.Size(374, 24);
             this.linkLabel1.TabIndex = 10;
             this.linkLabel1.TabStop = true;
             this.linkLabel1.Text = "https://app.zenhub.com/dashboard/tokens";
@@ -119,7 +119,7 @@ namespace IssueCreator.Dialogs
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(22, 248);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(90, 19);
+            this.label3.Size = new System.Drawing.Size(114, 24);
             this.label3.TabIndex = 14;
             this.label3.Text = "Repositories";
             // 
@@ -151,7 +151,7 @@ namespace IssueCreator.Dialogs
             this.label4.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label4.Location = new System.Drawing.Point(22, 394);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(87, 19);
+            this.label4.Size = new System.Drawing.Size(109, 24);
             this.label4.TabIndex = 20;
             this.label4.Text = "Default title";
             // 
@@ -161,7 +161,7 @@ namespace IssueCreator.Dialogs
             | System.Windows.Forms.AnchorStyles.Right)));
             this.lstDefaultLabels.FormattingEnabled = true;
             this.lstDefaultLabels.IntegralHeight = false;
-            this.lstDefaultLabels.ItemHeight = 19;
+            this.lstDefaultLabels.ItemHeight = 24;
             this.lstDefaultLabels.Location = new System.Drawing.Point(117, 424);
             this.lstDefaultLabels.Name = "lstDefaultLabels";
             this.lstDefaultLabels.Size = new System.Drawing.Size(521, 118);
@@ -176,7 +176,7 @@ namespace IssueCreator.Dialogs
             this.txtDefaultTitle.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtDefaultTitle.Location = new System.Drawing.Point(117, 391);
             this.txtDefaultTitle.Name = "txtDefaultTitle";
-            this.txtDefaultTitle.Size = new System.Drawing.Size(521, 27);
+            this.txtDefaultTitle.Size = new System.Drawing.Size(521, 32);
             this.txtDefaultTitle.TabIndex = 21;
             this.toolTip.SetToolTip(this.txtDefaultTitle, "The value that shows up when the app starts and no other changes have been made");
             // 
@@ -185,10 +185,10 @@ namespace IssueCreator.Dialogs
             this.lstAvailableRepos.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.lstAvailableRepos.FormattingEnabled = true;
-            this.lstAvailableRepos.ItemHeight = 19;
+            this.lstAvailableRepos.ItemHeight = 24;
             this.lstAvailableRepos.Location = new System.Drawing.Point(118, 248);
             this.lstAvailableRepos.Name = "lstAvailableRepos";
-            this.lstAvailableRepos.Size = new System.Drawing.Size(521, 137);
+            this.lstAvailableRepos.Size = new System.Drawing.Size(521, 124);
             this.lstAvailableRepos.Sorted = true;
             this.lstAvailableRepos.TabIndex = 13;
             this.toolTip.SetToolTip(this.lstAvailableRepos, "The list of available repositories to load issues from");
@@ -220,7 +220,7 @@ namespace IssueCreator.Dialogs
             this.lblTags.AutoSize = true;
             this.lblTags.Location = new System.Drawing.Point(12, 424);
             this.lblTags.Name = "lblTags";
-            this.lblTags.Size = new System.Drawing.Size(100, 19);
+            this.lblTags.Size = new System.Drawing.Size(125, 24);
             this.lblTags.TabIndex = 23;
             this.lblTags.Text = "Default labels";
             // 
@@ -230,7 +230,7 @@ namespace IssueCreator.Dialogs
             this.label5.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label5.Location = new System.Drawing.Point(12, 107);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(95, 19);
+            this.label5.Size = new System.Drawing.Size(122, 24);
             this.label5.TabIndex = 28;
             this.label5.Text = "GitHub Token";
             // 
@@ -240,7 +240,7 @@ namespace IssueCreator.Dialogs
             this.linkLabel2.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.linkLabel2.Location = new System.Drawing.Point(217, 77);
             this.linkLabel2.Name = "linkLabel2";
-            this.linkLabel2.Size = new System.Drawing.Size(269, 19);
+            this.linkLabel2.Size = new System.Drawing.Size(345, 24);
             this.linkLabel2.TabIndex = 27;
             this.linkLabel2.TabStop = true;
             this.linkLabel2.Text = "https://github.com/settings/tokens/new";
@@ -263,7 +263,7 @@ namespace IssueCreator.Dialogs
             this.txtGitHubToken.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtGitHubToken.Location = new System.Drawing.Point(118, 104);
             this.txtGitHubToken.Name = "txtGitHubToken";
-            this.txtGitHubToken.Size = new System.Drawing.Size(521, 27);
+            this.txtGitHubToken.Size = new System.Drawing.Size(521, 32);
             this.txtGitHubToken.TabIndex = 29;
             // 
             // txtToken
@@ -273,7 +273,7 @@ namespace IssueCreator.Dialogs
             this.txtToken.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtToken.Location = new System.Drawing.Point(118, 204);
             this.txtToken.Name = "txtToken";
-            this.txtToken.Size = new System.Drawing.Size(521, 27);
+            this.txtToken.Size = new System.Drawing.Size(521, 32);
             this.txtToken.TabIndex = 12;
             // 
             // btnClearCacheFolder
@@ -289,7 +289,7 @@ namespace IssueCreator.Dialogs
             // 
             // Preferences
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 19F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 24F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(655, 599);
             this.Controls.Add(this.btnClearCacheFolder);
