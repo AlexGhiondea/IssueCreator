@@ -5,16 +5,16 @@ Tool to streamline the creation of GitHub issues
 
 # Main entry point
 
-![Main][/docs/images/main.png]
+![Main](/docs/images/main.png)
 
 # Preferences
 
-![Preferences][/docs/images/preferences.png]
+![Preferences](/docs/images/preferences.png)
 
 # Assign epic to issue
 
-![AssignEpic][/docs/images/assign.png]
+![AssignEpic](/docs/images/assign.png)
 
 # Load existing issue
 
-![LoadIssue][/docs/images/load.png]
+![LoadIssue](/docs/images/load.png)
