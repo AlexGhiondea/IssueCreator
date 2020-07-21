@@ -9,7 +9,7 @@ namespace IssueCreator.Models
     {
         private string title;
         private string description;
-        private List<string> labels;
+        private List<string> labels = new List<string>();
 
         public string Organization { get; set; }
         public string Repository { get; set; }
