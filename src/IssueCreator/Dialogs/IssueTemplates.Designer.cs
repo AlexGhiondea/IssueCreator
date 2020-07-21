@@ -57,12 +57,13 @@
             this.label4.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label4.Location = new System.Drawing.Point(106, 13);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(310, 24);
+            this.label4.Size = new System.Drawing.Size(246, 19);
             this.label4.TabIndex = 12;
             this.label4.Text = "Load an existing issue as a template";
             // 
             // btnLoad
             // 
+            this.btnLoad.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnLoad.Font = new System.Drawing.Font("Calibri", 12F);
             this.btnLoad.Location = new System.Drawing.Point(598, 109);
             this.btnLoad.Name = "btnLoad";

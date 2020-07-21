@@ -1,6 +1,5 @@
 ﻿using IssueCreator.Helpers;
 using IssueCreator.Logging;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
 using System.IO;

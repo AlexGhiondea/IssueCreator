@@ -25,7 +25,7 @@ namespace IssueCreator.Controls
         {
             if (keyData == (Keys.Control | Keys.Back))
             {
-                bool processResult =  StringHelpers.ProcessCtrlBackspace(Text, SelectionStart, out string remainingText, out int newSelectionIndex);
+                bool processResult = StringHelpers.ProcessCtrlBackspace(Text, SelectionStart, out string remainingText, out int newSelectionIndex);
                 Text = remainingText;
                 SelectionStart = newSelectionIndex;
                 return processResult;

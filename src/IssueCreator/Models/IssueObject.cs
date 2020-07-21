@@ -23,7 +23,9 @@ namespace IssueCreator.Models
             Body = issue.Body;
             Tags = issue.Labels.Select(l => l.Name).ToList();
             if (issue.Milestone != null)
+            {
                 Milestone = new IssueMilestone(issue.Milestone);
+            }
         }
 
         public IssueObject() //for deserialization
