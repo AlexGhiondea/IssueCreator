@@ -265,7 +265,7 @@ namespace IssueCreator
         private void SetSelectedTags(List<string> tags)
         {
             lstAvailableTags.Items.AddRange(lstSelectedTags.Items);
-            foreach (var tag in tags)
+            foreach (string tag in tags)
             {
                 if(tag != null)
                 {
@@ -479,7 +479,7 @@ namespace IssueCreator
             using IDisposable scope = s_logger.CreateScope("Open issue as template dialog");
             IssueTemplates dlg = new IssueTemplates(s_issueManager, s_settings, s_logger);
             s_issueManager.TemplateIssueLoaded += issueManager_IssueLoadedEvent;
-            var result = dlg.ShowDialog(this);  
+            DialogResult result = dlg.ShowDialog(this);  
         }
 
         private void issueManager_IssueLoadedEvent(object sender, IssueObject issue)
