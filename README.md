@@ -3,6 +3,10 @@ Tool to streamline the creation of GitHub issues
 
 ![](https://github.com/AlexGhiondea/IssueCreator/workflows/ci/badge.svg)
 
+# Install
+
+[ClickOnce](https://issuecreatorinstaller.blob.core.windows.net/installer/IssueCreator.application)
+
 # Main entry point
 
 ![Main](/docs/images/main.png)
