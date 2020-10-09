@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -92,11 +93,17 @@ namespace IssueCreator.Dialogs
                         Estimate = csv.GetField<string>("Estimate").Trim(),
                     };
 
-                    issue.Milestone = await _issueManager.GetMilestoneAsync(issue.Organization, issue.Repository, csv.GetField<string>("Milestone").Trim());
-
-                    string labels = csv.GetField<string>("Labels").Trim();
-                    if (!string.IsNullOrEmpty(labels))
+                    string milestone = csv.GetField<string>("Milestone");
+                    if (!string.IsNullOrWhiteSpace(milestone))
                     {
+                        milestone = milestone.Trim();
+                        issue.Milestone = await _issueManager.GetMilestoneAsync(issue.Organization, issue.Repository, milestone);
+                    }
+
+                    string labels = csv.GetField<string>("Labels");
+                    if (!string.IsNullOrWhiteSpace(labels))
+                    {
+                        labels = labels.Trim();
                         issue.Labels = new List<string>(labels.Split(','));
                     }
 
@@ -105,6 +112,40 @@ namespace IssueCreator.Dialogs
             }
 
             return issues;
+        }
+
+        private async void btnCreateIssues_Click(object sender, EventArgs e)
+        {
+            List<IssueToCreate> list = (List<IssueToCreate>)issueToCreateBindingSource.DataSource;
+
+            while (list.Count > 0)
+            {
+                IssueToCreate issue = list[0];
+
+                // validate that the title is not empty and not the default.
+                if (string.IsNullOrEmpty(issue.Title))
+                {
+                    MessageBox.Show(this, "Cannot create an issue with an empty or default title.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    continue;
+                }
+
+                // assign the epic to the issue!
+                issue.Epic = (IssueDescription)cboEpics.SelectedItem;
+
+                (bool success, string errorMsg) = await _issueManager.TryCreateNewIssueAsync(issue);
+                if (!success)
+                {
+                    MessageBox.Show($"Could not create issue {issue.Title} in repository {issue.Organization}\\{issue.Repository} {Environment.NewLine} {errorMsg}");
+                    continue;
+                }
+                else
+                {
+                    // update the datasource
+                    list.Remove(issue);
+                    issueToCreateBindingSource.DataSource = list;
+                    issueToCreateBindingSource.ResetBindings(false);
+                }
+            }
         }
     }
 }

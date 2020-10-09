@@ -52,7 +52,7 @@
             // 
             this.btnBrowseEpic.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnBrowseEpic.Font = new System.Drawing.Font("Calibri", 12F);
-            this.btnBrowseEpic.Location = new System.Drawing.Point(906, 11);
+            this.btnBrowseEpic.Location = new System.Drawing.Point(910, 11);
             this.btnBrowseEpic.Name = "btnBrowseEpic";
             this.btnBrowseEpic.Size = new System.Drawing.Size(70, 30);
             this.btnBrowseEpic.TabIndex = 13;
@@ -92,7 +92,7 @@
             this.dgBulkIssues.Location = new System.Drawing.Point(12, 47);
             this.dgBulkIssues.Name = "dgBulkIssues";
             this.dgBulkIssues.ReadOnly = true;
-            this.dgBulkIssues.Size = new System.Drawing.Size(967, 352);
+            this.dgBulkIssues.Size = new System.Drawing.Size(971, 314);
             this.dgBulkIssues.TabIndex = 14;
             // 
             // organizationDataGridViewTextBoxColumn
@@ -150,9 +150,9 @@
             // 
             // btnLoadData
             // 
-            this.btnLoadData.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnLoadData.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnLoadData.Font = new System.Drawing.Font("Calibri", 12F);
-            this.btnLoadData.Location = new System.Drawing.Point(12, 408);
+            this.btnLoadData.Location = new System.Drawing.Point(12, 370);
             this.btnLoadData.Name = "btnLoadData";
             this.btnLoadData.Size = new System.Drawing.Size(126, 30);
             this.btnLoadData.TabIndex = 15;
@@ -172,20 +172,21 @@
             this.cboEpics.IntegralHeight = false;
             this.cboEpics.Location = new System.Drawing.Point(55, 12);
             this.cboEpics.Name = "cboEpics";
-            this.cboEpics.Size = new System.Drawing.Size(845, 26);
+            this.cboEpics.Size = new System.Drawing.Size(849, 26);
             this.cboEpics.Sorted = true;
             this.cboEpics.TabIndex = 12;
             // 
             // btnCreateIssues
             // 
-            this.btnCreateIssues.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnCreateIssues.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnCreateIssues.Font = new System.Drawing.Font("Calibri", 12F);
-            this.btnCreateIssues.Location = new System.Drawing.Point(850, 408);
+            this.btnCreateIssues.Location = new System.Drawing.Point(854, 370);
             this.btnCreateIssues.Name = "btnCreateIssues";
             this.btnCreateIssues.Size = new System.Drawing.Size(126, 30);
             this.btnCreateIssues.TabIndex = 16;
             this.btnCreateIssues.Text = "Create Issues";
             this.btnCreateIssues.UseVisualStyleBackColor = true;
+            this.btnCreateIssues.Click += new System.EventHandler(this.btnCreateIssues_Click);
             // 
             // LabelsCollection
             // 
@@ -198,7 +199,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(991, 450);
+            this.ClientSize = new System.Drawing.Size(995, 412);
             this.Controls.Add(this.btnCreateIssues);
             this.Controls.Add(this.btnLoadData);
             this.Controls.Add(this.dgBulkIssues);
