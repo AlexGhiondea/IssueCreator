@@ -103,6 +103,14 @@ namespace IssueCreator
             return milestones;
         }
 
+        public async Task<IssueMilestone> GetMilestoneAsync(string owner, string repo, string milestoneName)
+        {
+            using IDisposable scope = _fileLogger.CreateScope($"Retrieving milestone with name {milestoneName}");
+            IEnumerable<IssueMilestone> milestones = await GetValueFromCache(StringTemplate.Milestones(owner, repo), async () => IssueMilestone.FromMilestoneList(await _githubClient.Issue.Milestone.GetAllForRepository(owner, repo).ConfigureAwait(false)));
+
+            return milestones.FirstOrDefault(issue => StringComparer.OrdinalIgnoreCase.Equals(issue.Title, milestoneName));
+        }
+
         public async Task<List<RepoLabel>> GetLabelsAsync(string owner, string repo)
         {
             using IDisposable scope = _fileLogger.CreateScope("Retrieving labels");

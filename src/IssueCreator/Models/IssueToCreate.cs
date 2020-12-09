@@ -39,6 +39,7 @@ namespace IssueCreator.Models
                 NotifyPropertyChanged();
             }
         }
+        public string LabelsCollection { get => string.Join(",", Labels); }
         public IssueDescription Epic { get; set; }
         public IssueMilestone Milestone { get; set; }
         public string Estimate { get; set; }

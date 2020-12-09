@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using IssueCreator.Logging;
 using IssueCreator.Helpers;
+using Octokit;
 
 namespace IssueCreator
 {
@@ -500,6 +501,17 @@ namespace IssueCreator
         {
             // save the settings to disk
             s_settings.Serialize(SettingsFile, s_logger);
+        }
+
+        private void bulkCreateToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using IDisposable scope = s_logger.CreateScope("Open bulk issue assignment dialog");
+
+            object[] epics = new object[cboEpics.Items.Count];
+            cboEpics.Items.CopyTo(epics, 0);
+
+            BulkCreateIssues bci = new BulkCreateIssues(s_issueManager, s_settings, s_logger, epics);
+            bci.ShowDialog(this);
         }
     }
 }
