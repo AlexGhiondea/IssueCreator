@@ -91,6 +91,7 @@ namespace IssueCreator.Dialogs
                         Description = csv.GetField<string>("Description").Trim(),
                         AssignedTo = csv.GetField<string>("AssignedTo").Trim(),
                         Estimate = csv.GetField<string>("Estimate").Trim(),
+                        CreateAsEpic = csv.GetField<bool>("IsEpic")
                     };
 
                     string milestone = csv.GetField<string>("Milestone");
