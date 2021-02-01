@@ -357,7 +357,7 @@ namespace IssueCreator
                         // from the issue link, get the cached issue from the repo
                         IssueObject issue = await GetIssueAsync(repoId, issueNumber, IssueLoadScenario.LoadAllIssues);
 
-                        result.Add(new IssueDescription() { Issue = issue, Repo = gitHubRepoObj, Title = issue.Title });
+                        result.Add(new IssueDescription() { Issue = issue, Repo = gitHubRepoObj });
                     }
                 });
             }
@@ -390,7 +390,7 @@ namespace IssueCreator
 
                 if (StringComparer.OrdinalIgnoreCase.Equals(title, issue.Title))
                 {
-                    findResults.Add(new IssueDescription() { Issue = issue, Repo = gitHubRepoObj, Title = issue.Title });
+                    findResults.Add(new IssueDescription() { Issue = issue, Repo = gitHubRepoObj });
                 }
             }
 
