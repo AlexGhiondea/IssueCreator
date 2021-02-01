@@ -23,9 +23,6 @@ namespace IssueCreator
         private static IssueToCreate s_previouslyCreatedIssue;
         private static FileLogger s_logger;
 
-        private static string SettingsFolder;
-        private static string SettingsFile;
-
         private (string owner, string repo) selectedRepo => UIHelpers.GetRepoOwner(s_settings.SelectedRepository);
 
         private static string CacheFolder
@@ -40,7 +37,7 @@ namespace IssueCreator
                 else
                 {
                     // otherwise, use a different folder.
-                    return Path.Combine(SettingsFolder, "Cache");
+                    return Path.Combine(Settings.SettingsFolder, "Cache");
                 }
             }
         }
@@ -52,13 +49,10 @@ namespace IssueCreator
 
         public frmMain()
         {
-            SettingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "IssueCreator");
-            SettingsFile = Path.Combine(SettingsFolder, "issueCreator.settings");
-
             // The directories need to exist prior to anything else
-            if (!Directory.Exists(SettingsFolder))
+            if (!Directory.Exists(Settings.SettingsFolder))
             {
-                Directory.CreateDirectory(SettingsFolder);
+                Directory.CreateDirectory(Settings.SettingsFolder);
             }
 
             if (!Directory.Exists(CacheFolder))
@@ -67,7 +61,7 @@ namespace IssueCreator
             }
 
             // Log the launch of the app
-            s_logger = new FileLogger(Path.Combine(SettingsFolder, "issueCreator.log"));
+            s_logger = new FileLogger(Path.Combine(Settings.SettingsFolder, "issueCreator.log"));
             s_logger.Log($"=====>>>>  IssueCreator started  <<<<=====");
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -87,7 +81,7 @@ namespace IssueCreator
 
             using IDisposable scope = s_logger.CreateScope("Loading main form");
 
-            s_settings.Initialize(Settings.Deserialize(SettingsFile, s_logger));
+            s_settings.Initialize(Settings.Deserialize(Settings.SettingsFile, s_logger));
 
             s_issueManager = IssueManager.Create(s_settings, CacheFolder, s_logger);
 
@@ -434,7 +428,7 @@ namespace IssueCreator
         private void ShowPreferencesDialog()
         {
             using IDisposable scope = s_logger.CreateScope("Show preferences dialog");
-            Preferences p = new Preferences(s_settings.Clone(), s_issueManager, SettingsFile, CacheFolder, s_logger);
+            Preferences p = new Preferences(s_settings.Clone(), s_issueManager, Settings.SettingsFile, CacheFolder, s_logger);
             if (p.ShowDialog() == DialogResult.OK)
             {
                 s_settings = p.NewSettings;
@@ -455,7 +449,7 @@ namespace IssueCreator
                 }
 
                 // save the settings to disk
-                s_settings.Serialize(SettingsFile, s_logger);
+                s_settings.Serialize(Settings.SettingsFile, s_logger);
 
                 // refresh the page
                 LoadFormFromSettings();
@@ -500,7 +494,7 @@ namespace IssueCreator
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
             // save the settings to disk
-            s_settings.Serialize(SettingsFile, s_logger);
+            s_settings.Serialize(Settings.SettingsFile, s_logger);
         }
 
         private void bulkCreateToolStripMenuItem_Click(object sender, EventArgs e)

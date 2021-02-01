@@ -12,6 +12,9 @@ namespace IssueCreator
 {
     public class Settings : INotifyPropertyChanged
     {
+        public static string SettingsFolder { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "IssueCreator");
+        public static string SettingsFile { get; } = Path.Combine(SettingsFolder, "issueCreator.settings");
+
         private static readonly byte[] s_entropy = { 23, 61, 24, 8, 77, 52 }; //the entropy
         private List<string> repositories = new List<string>();
         private string selectedRepository = string.Empty;
