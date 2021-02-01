@@ -357,7 +357,7 @@ namespace IssueCreator
                         // from the issue link, get the cached issue from the repo
                         IssueObject issue = await GetIssueAsync(repoId, issueNumber, IssueLoadScenario.LoadAllIssues);
 
-                        result.Add(new IssueDescription() { Issue = issue, Repo = gitHubRepoObj });
+                        result.Add(new IssueDescription() { Issue = issue, Repo = gitHubRepoObj, Title = issue.Title });
                     }
                 });
             }
@@ -371,6 +371,30 @@ namespace IssueCreator
         {
             string[] parts = input.Split('\\');
             return (parts[0], parts[1]);
+        }
+
+        public async Task<List<IssueDescription>> GetEpicsWithTitleAsync(string title, string ownerAndRepoName)
+        {
+            (string owner, string repo) = GetOwnerAndRepoFromString(ownerAndRepoName);
+            RepositoryInfo gitHubRepoObj = await GetRepositoryAsync(owner, repo);
+            EpicList epicList = await GetValueFromCache(StringTemplate.Epic(owner, repo), async () => (await _zenHubClient.GetRepositoryClient(gitHubRepoObj.Id).GetEpicsAsync().ConfigureAwait(false)).Value, DateTimeOffset.Now.AddHours(1));
+
+            List<IssueDescription> findResults = new List<IssueDescription>();
+
+            foreach (EpicInfo epic in epicList.Epics)
+            {
+                long repoId = epic.RepositoryId;
+                int issueNumber = epic.IssueNumber;
+                // from the issue link, get the cached issue from the repo
+                IssueObject issue = await GetIssueAsync(repoId, issueNumber, IssueLoadScenario.LoadAllIssues);
+
+                if (StringComparer.OrdinalIgnoreCase.Equals(title, issue.Title))
+                {
+                    findResults.Add(new IssueDescription() { Issue = issue, Repo = gitHubRepoObj, Title = issue.Title });
+                }
+            }
+
+            return findResults;
         }
 
         /// <summary>
