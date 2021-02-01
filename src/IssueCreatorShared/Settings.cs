@@ -50,12 +50,11 @@ namespace IssueCreator
         public void Serialize(string file, FileLogger log)
         {
             using IDisposable scope = log.CreateScope("Serializing settings file");
-            using (StreamWriter sw = new StreamWriter(file))
-            {
-                Settings encrypted = EncryptSettings(this);
-                string jsonObject = JsonSerializer.Serialize(encrypted);
-                sw.Write(jsonObject);
-            }
+            using StreamWriter sw = new StreamWriter(file);
+
+            Settings encrypted = EncryptSettings(this);
+            string jsonObject = JsonSerializer.Serialize(encrypted);
+            sw.Write(jsonObject);
         }
 
         private static Settings DecryptSettings(Settings input)
@@ -88,10 +87,8 @@ namespace IssueCreator
 
             try
             {
-                using (StreamReader sr = new StreamReader(file))
-                {
-                    return DecryptSettings(JsonSerializer.Deserialize<Settings>(sr.ReadToEnd()));
-                }
+                using StreamReader sr = new StreamReader(file);
+                return DecryptSettings(JsonSerializer.Deserialize<Settings>(sr.ReadToEnd()));
             }
             catch (Exception ex)
             {
@@ -150,10 +147,7 @@ namespace IssueCreator
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
         {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

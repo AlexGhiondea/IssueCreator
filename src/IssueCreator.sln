@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IssueCreator", "IssueCreato
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CBC9FB83-2E91-4430-97DC-5C747285C03A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BulkIssueCreatorCLI", "BulkIssueCreatorCLI\BulkIssueCreatorCLI.csproj", "{5ECA6E02-FE8F-44FF-9B56-D1B341D38374}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IssueCreatorShared", "IssueCreatorShared\IssueCreatorShared.csproj", "{8C7F4474-A981-4BCE-80F4-5FAEB9F1D0F0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,6 +21,14 @@ Global
 		{AC439D5E-D6C3-481C-B9CA-4A6A5504A78B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC439D5E-D6C3-481C-B9CA-4A6A5504A78B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AC439D5E-D6C3-481C-B9CA-4A6A5504A78B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5ECA6E02-FE8F-44FF-9B56-D1B341D38374}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5ECA6E02-FE8F-44FF-9B56-D1B341D38374}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5ECA6E02-FE8F-44FF-9B56-D1B341D38374}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5ECA6E02-FE8F-44FF-9B56-D1B341D38374}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C7F4474-A981-4BCE-80F4-5FAEB9F1D0F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C7F4474-A981-4BCE-80F4-5FAEB9F1D0F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C7F4474-A981-4BCE-80F4-5FAEB9F1D0F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C7F4474-A981-4BCE-80F4-5FAEB9F1D0F0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

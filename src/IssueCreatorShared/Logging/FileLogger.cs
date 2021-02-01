@@ -9,7 +9,7 @@ namespace IssueCreator.Logging
 {
     public class FileLogger
     {
-        private string _logPath;
+        private readonly string _logPath;
         public FileLogger(string logPath)
         {
             if (string.IsNullOrEmpty(logPath))
@@ -25,7 +25,7 @@ namespace IssueCreator.Logging
             return new LogScope(this, message);
         }
 
-        internal void Log(string message)
+        public void Log(string message)
         {
             lock (_logPath)
             {
