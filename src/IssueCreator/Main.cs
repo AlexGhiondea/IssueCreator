@@ -502,8 +502,7 @@ namespace IssueCreator
             // save the settings to disk
             s_settings.Serialize(SettingsFile, s_logger);
         }
-
-        private void bulkCreateToolStripMenuItem_Click(object sender, EventArgs e)
+        private void issuesForEpicToolStripMenuItem_Click(object sender, EventArgs e)
         {
             using IDisposable scope = s_logger.CreateScope("Open bulk issue assignment dialog");
 
@@ -511,6 +510,14 @@ namespace IssueCreator
             cboEpics.Items.CopyTo(epics, 0);
 
             BulkCreateIssues bci = new BulkCreateIssues(s_issueManager, s_settings, s_logger, epics);
+            bci.ShowDialog(this);
+        }
+
+        private void epicTreeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using IDisposable scope = s_logger.CreateScope("Open bulk issue assignment dialog with extended tree definition");
+
+            BulkCreateEpicTree bci = new BulkCreateEpicTree(s_issueManager, s_settings, s_logger);
             bci.ShowDialog(this);
         }
     }

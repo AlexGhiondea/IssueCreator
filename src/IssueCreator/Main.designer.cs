@@ -54,6 +54,9 @@ namespace IssueCreator
             this.issuesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.assignIssueToEpicToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadIssueToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.bulkCreateToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.issuesForEpicToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.epicTreeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.lblEpic = new System.Windows.Forms.Label();
             this.btnRefreshEpics = new System.Windows.Forms.Button();
             this.label8 = new System.Windows.Forms.Label();
@@ -67,7 +70,6 @@ namespace IssueCreator
             this.lstSelectedTags = new IssueCreator.Controls.ListBoxWithSearch();
             this.txtDescription = new IssueCreator.Controls.TextBoxEx();
             this.txtIssueTitle = new IssueCreator.Controls.TextBoxEx();
-            this.bulkCreateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -246,7 +248,7 @@ namespace IssueCreator
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(92, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(93, 22);
             this.exitToolStripMenuItem.Text = "E&xit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -270,7 +272,7 @@ namespace IssueCreator
             this.issuesToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.assignIssueToEpicToolStripMenuItem,
             this.loadIssueToolStripMenuItem,
-            this.bulkCreateToolStripMenuItem});
+            this.bulkCreateToolStripMenuItem1});
             this.issuesToolStripMenuItem.Name = "issuesToolStripMenuItem";
             this.issuesToolStripMenuItem.Size = new System.Drawing.Size(50, 20);
             this.issuesToolStripMenuItem.Text = "Issues";
@@ -279,16 +281,39 @@ namespace IssueCreator
             // 
             this.assignIssueToEpicToolStripMenuItem.Enabled = false;
             this.assignIssueToEpicToolStripMenuItem.Name = "assignIssueToEpicToolStripMenuItem";
-            this.assignIssueToEpicToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
+            this.assignIssueToEpicToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
             this.assignIssueToEpicToolStripMenuItem.Text = "Manage issues";
             this.assignIssueToEpicToolStripMenuItem.Click += new System.EventHandler(this.assignIssueToEpicToolStripMenuItem_Click);
             // 
             // loadIssueToolStripMenuItem
             // 
             this.loadIssueToolStripMenuItem.Name = "loadIssueToolStripMenuItem";
-            this.loadIssueToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
+            this.loadIssueToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
             this.loadIssueToolStripMenuItem.Text = "Load Issue as Template";
             this.loadIssueToolStripMenuItem.Click += new System.EventHandler(this.loadIssueToolStripMenuItem_Click);
+            // 
+            // bulkCreateToolStripMenuItem1
+            // 
+            this.bulkCreateToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.issuesForEpicToolStripMenuItem,
+            this.epicTreeToolStripMenuItem});
+            this.bulkCreateToolStripMenuItem1.Name = "bulkCreateToolStripMenuItem1";
+            this.bulkCreateToolStripMenuItem1.Size = new System.Drawing.Size(194, 22);
+            this.bulkCreateToolStripMenuItem1.Text = "Bulk create";
+            // 
+            // issuesForEpicToolStripMenuItem
+            // 
+            this.issuesForEpicToolStripMenuItem.Name = "issuesForEpicToolStripMenuItem";
+            this.issuesForEpicToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.issuesForEpicToolStripMenuItem.Text = "Issues for epic";
+            this.issuesForEpicToolStripMenuItem.Click += new System.EventHandler(this.issuesForEpicToolStripMenuItem_Click);
+            // 
+            // epicTreeToolStripMenuItem
+            // 
+            this.epicTreeToolStripMenuItem.Name = "epicTreeToolStripMenuItem";
+            this.epicTreeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.epicTreeToolStripMenuItem.Text = "Epic tree";
+            this.epicTreeToolStripMenuItem.Click += new System.EventHandler(this.epicTreeToolStripMenuItem_Click);
             // 
             // lblEpic
             // 
@@ -452,13 +477,6 @@ namespace IssueCreator
             this.txtIssueTitle.Size = new System.Drawing.Size(497, 26);
             this.txtIssueTitle.TabIndex = 3;
             // 
-            // bulkCreateToolStripMenuItem
-            // 
-            this.bulkCreateToolStripMenuItem.Name = "bulkCreateToolStripMenuItem";
-            this.bulkCreateToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
-            this.bulkCreateToolStripMenuItem.Text = "Bulk create";
-            this.bulkCreateToolStripMenuItem.Click += new System.EventHandler(this.bulkCreateToolStripMenuItem_Click);
-            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -543,7 +561,9 @@ namespace IssueCreator
         private ToolStripMenuItem issuesToolStripMenuItem;
         private ToolStripMenuItem assignIssueToEpicToolStripMenuItem;
         private ToolStripMenuItem loadIssueToolStripMenuItem;
-        private ToolStripMenuItem bulkCreateToolStripMenuItem;
+        private ToolStripMenuItem bulkCreateToolStripMenuItem1;
+        private ToolStripMenuItem issuesForEpicToolStripMenuItem;
+        private ToolStripMenuItem epicTreeToolStripMenuItem;
     }
 }
 
