@@ -22,6 +22,7 @@ namespace IssueCreator.Logging
 
         public LogScope CreateScope(string message)
         {
+            
             return new LogScope(this, message);
         }
 

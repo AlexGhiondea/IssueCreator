@@ -17,7 +17,7 @@ namespace IssueCreator.Models
 
         }
 
-        internal static List<RepoLabel> FromLabelList(IReadOnlyList<Label> labels)
+        public static List<RepoLabel> FromLabelList(IReadOnlyList<Label> labels)
         {
             List<RepoLabel> result = new List<RepoLabel>();
             foreach (Label label in labels)

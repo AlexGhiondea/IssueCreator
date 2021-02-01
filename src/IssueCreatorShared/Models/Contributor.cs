@@ -17,7 +17,7 @@ namespace IssueCreator.Models
 
         }
 
-        internal static List<GitHubContributor> FromContributorsList(IReadOnlyList<RepositoryContributor> repoContributorList)
+        public static List<GitHubContributor> FromContributorsList(IReadOnlyList<RepositoryContributor> repoContributorList)
         {
             List<GitHubContributor> contrib = new List<GitHubContributor>();
             foreach (RepositoryContributor contributor in repoContributorList)

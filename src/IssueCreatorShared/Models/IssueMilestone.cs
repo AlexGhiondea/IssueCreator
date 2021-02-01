@@ -27,7 +27,7 @@ namespace IssueCreator.Models
             return $"{Title}";
         }
 
-        internal static IEnumerable<IssueMilestone> FromMilestoneList(IReadOnlyList<Milestone> milestones)
+        public static IEnumerable<IssueMilestone> FromMilestoneList(IReadOnlyList<Milestone> milestones)
         {
             List<IssueMilestone> result = new List<IssueMilestone>();
             foreach (Milestone milestone in milestones)
