@@ -85,12 +85,13 @@ namespace IssueCreator.Dialogs
 
                     IssueToCreate issue = new IssueToCreate
                     {
-                        Organization = csv.GetField<string>("Organization").Trim(),
-                        Repository = csv.GetField<string>("Repository").Trim(),
-                        Title = csv.GetField<string>("Title").Trim(),
-                        Description = csv.GetField<string>("Description").Trim(),
-                        AssignedTo = csv.GetField<string>("AssignedTo").Trim(),
-                        Estimate = csv.GetField<string>("Estimate").Trim(),
+                        Organization = csv.GetField<string>("Organization")?.Trim(),
+                        Repository = csv.GetField<string>("Repository")?.Trim(),
+                        Title = csv.GetField<string>("Title")?.Trim(),
+                        Description = csv.GetField<string>("Description")?.Trim(),
+                        AssignedTo = csv.GetField<string>("AssignedTo")?.Trim(),
+                        Estimate = csv.GetField<string>("Estimate")?.Trim(),
+                        CreateAsEpic = csv.GetField<bool>("IsEpic")
                     };
 
                     string milestone = csv.GetField<string>("Milestone");

@@ -32,6 +32,10 @@
             this.btnBrowseEpic = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.dgBulkIssues = new System.Windows.Forms.DataGridView();
+            this.issueToCreateBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.btnLoadData = new System.Windows.Forms.Button();
+            this.cboEpics = new IssueCreator.Controls.ComboBoxWithSearch();
+            this.btnCreateIssues = new System.Windows.Forms.Button();
             this.organizationDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.repositoryDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.titleDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -39,11 +43,8 @@
             this.descriptionDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Milestone = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.estimateDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.issueToCreateBindingSource = new System.Windows.Forms.BindingSource(this.components);
-            this.btnLoadData = new System.Windows.Forms.Button();
-            this.cboEpics = new IssueCreator.Controls.ComboBoxWithSearch();
-            this.btnCreateIssues = new System.Windows.Forms.Button();
             this.LabelsCollection = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.CreateAsEpic = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dgBulkIssues)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.issueToCreateBindingSource)).BeginInit();
             this.SuspendLayout();
@@ -87,13 +88,58 @@
             this.descriptionDataGridViewTextBoxColumn,
             this.Milestone,
             this.estimateDataGridViewTextBoxColumn,
-            this.LabelsCollection});
+            this.LabelsCollection,
+            this.CreateAsEpic});
             this.dgBulkIssues.DataSource = this.issueToCreateBindingSource;
             this.dgBulkIssues.Location = new System.Drawing.Point(12, 47);
             this.dgBulkIssues.Name = "dgBulkIssues";
             this.dgBulkIssues.ReadOnly = true;
             this.dgBulkIssues.Size = new System.Drawing.Size(971, 314);
             this.dgBulkIssues.TabIndex = 14;
+            // 
+            // issueToCreateBindingSource
+            // 
+            this.issueToCreateBindingSource.DataSource = typeof(IssueCreator.Models.IssueToCreate);
+            // 
+            // btnLoadData
+            // 
+            this.btnLoadData.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnLoadData.Font = new System.Drawing.Font("Calibri", 12F);
+            this.btnLoadData.Location = new System.Drawing.Point(12, 370);
+            this.btnLoadData.Name = "btnLoadData";
+            this.btnLoadData.Size = new System.Drawing.Size(126, 30);
+            this.btnLoadData.TabIndex = 15;
+            this.btnLoadData.Text = "Load Issues";
+            this.btnLoadData.UseVisualStyleBackColor = true;
+            this.btnLoadData.Click += new System.EventHandler(this.btnLoadData_Click);
+            // 
+            // cboEpics
+            // 
+            this.cboEpics.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.cboEpics.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.cboEpics.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            this.cboEpics.CausesValidation = false;
+            this.cboEpics.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cboEpics.FormattingEnabled = true;
+            this.cboEpics.IntegralHeight = false;
+            this.cboEpics.Location = new System.Drawing.Point(55, 12);
+            this.cboEpics.Name = "cboEpics";
+            this.cboEpics.Size = new System.Drawing.Size(849, 26);
+            this.cboEpics.Sorted = true;
+            this.cboEpics.TabIndex = 12;
+            // 
+            // btnCreateIssues
+            // 
+            this.btnCreateIssues.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnCreateIssues.Font = new System.Drawing.Font("Calibri", 12F);
+            this.btnCreateIssues.Location = new System.Drawing.Point(854, 370);
+            this.btnCreateIssues.Name = "btnCreateIssues";
+            this.btnCreateIssues.Size = new System.Drawing.Size(126, 30);
+            this.btnCreateIssues.TabIndex = 16;
+            this.btnCreateIssues.Text = "Create Issues";
+            this.btnCreateIssues.UseVisualStyleBackColor = true;
+            this.btnCreateIssues.Click += new System.EventHandler(this.btnCreateIssues_Click);
             // 
             // organizationDataGridViewTextBoxColumn
             // 
@@ -144,56 +190,19 @@
             this.estimateDataGridViewTextBoxColumn.Name = "estimateDataGridViewTextBoxColumn";
             this.estimateDataGridViewTextBoxColumn.ReadOnly = true;
             // 
-            // issueToCreateBindingSource
-            // 
-            this.issueToCreateBindingSource.DataSource = typeof(IssueCreator.Models.IssueToCreate);
-            // 
-            // btnLoadData
-            // 
-            this.btnLoadData.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnLoadData.Font = new System.Drawing.Font("Calibri", 12F);
-            this.btnLoadData.Location = new System.Drawing.Point(12, 370);
-            this.btnLoadData.Name = "btnLoadData";
-            this.btnLoadData.Size = new System.Drawing.Size(126, 30);
-            this.btnLoadData.TabIndex = 15;
-            this.btnLoadData.Text = "Load Issues";
-            this.btnLoadData.UseVisualStyleBackColor = true;
-            this.btnLoadData.Click += new System.EventHandler(this.btnLoadData_Click);
-            // 
-            // cboEpics
-            // 
-            this.cboEpics.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.cboEpics.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
-            this.cboEpics.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            this.cboEpics.CausesValidation = false;
-            this.cboEpics.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cboEpics.FormattingEnabled = true;
-            this.cboEpics.IntegralHeight = false;
-            this.cboEpics.Location = new System.Drawing.Point(55, 12);
-            this.cboEpics.Name = "cboEpics";
-            this.cboEpics.Size = new System.Drawing.Size(849, 26);
-            this.cboEpics.Sorted = true;
-            this.cboEpics.TabIndex = 12;
-            // 
-            // btnCreateIssues
-            // 
-            this.btnCreateIssues.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnCreateIssues.Font = new System.Drawing.Font("Calibri", 12F);
-            this.btnCreateIssues.Location = new System.Drawing.Point(854, 370);
-            this.btnCreateIssues.Name = "btnCreateIssues";
-            this.btnCreateIssues.Size = new System.Drawing.Size(126, 30);
-            this.btnCreateIssues.TabIndex = 16;
-            this.btnCreateIssues.Text = "Create Issues";
-            this.btnCreateIssues.UseVisualStyleBackColor = true;
-            this.btnCreateIssues.Click += new System.EventHandler(this.btnCreateIssues_Click);
-            // 
             // LabelsCollection
             // 
             this.LabelsCollection.DataPropertyName = "LabelsCollection";
             this.LabelsCollection.HeaderText = "Labels";
             this.LabelsCollection.Name = "LabelsCollection";
             this.LabelsCollection.ReadOnly = true;
+            // 
+            // CreateAsEpic
+            // 
+            this.CreateAsEpic.DataPropertyName = "CreateAsEpic";
+            this.CreateAsEpic.HeaderText = "CreateAsEpic";
+            this.CreateAsEpic.Name = "CreateAsEpic";
+            this.CreateAsEpic.ReadOnly = true;
             // 
             // BulkCreateIssues
             // 
@@ -223,6 +232,7 @@
         private System.Windows.Forms.DataGridView dgBulkIssues;
         private System.Windows.Forms.BindingSource issueToCreateBindingSource;
         protected System.Windows.Forms.Button btnLoadData;
+        protected System.Windows.Forms.Button btnCreateIssues;
         private System.Windows.Forms.DataGridViewTextBoxColumn organizationDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn repositoryDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn titleDataGridViewTextBoxColumn;
@@ -230,7 +240,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn descriptionDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn Milestone;
         private System.Windows.Forms.DataGridViewTextBoxColumn estimateDataGridViewTextBoxColumn;
-        protected System.Windows.Forms.Button btnCreateIssues;
         private System.Windows.Forms.DataGridViewTextBoxColumn LabelsCollection;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn CreateAsEpic;
     }
 }
