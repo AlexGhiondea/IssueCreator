@@ -43,7 +43,7 @@ namespace IssueCreator
                 default:
                     break;
             }
-            
+
         }
 
         public static IssueManager Create(Settings settings, string cacheFolder, FileLogger fileLogger)
@@ -227,7 +227,7 @@ namespace IssueCreator
             return await GetValueFromCache(StringTemplate.Repo(owner, repo), async () => new RepositoryInfo(await _githubClient.Repository.Get(owner, repo).ConfigureAwait(false)));
         }
 
-        public async Task<(bool, string)> TryCreateNewIssueAsync(IssueToCreate issueToCreate)
+        public async Task<(bool, string)> TryCreateNewIssueAsync(IssueToCreate issueToCreate, bool openBrowserAfterCreate = true)
         {
             using IDisposable scope = _fileLogger.CreateScope("Creating issue");
 
@@ -306,7 +306,10 @@ namespace IssueCreator
                 return (false, "Failed to create the epic. Please check the issue on the website.");
             }
 
-            Process.Start(createdIssue.HtmlUrl);
+            if (openBrowserAfterCreate)
+            {
+                Process.Start(createdIssue.HtmlUrl);
+            }
 
             return (true, string.Empty);
         }
@@ -376,7 +379,7 @@ namespace IssueCreator
         {
             (string owner, string repo) = GetOwnerAndRepoFromString(ownerAndRepoName);
             RepositoryInfo gitHubRepoObj = await GetRepositoryAsync(owner, repo);
-            EpicList epicList = await GetValueFromCache(StringTemplate.Epic(owner, repo), async () => (await _zenHubClient.GetRepositoryClient(gitHubRepoObj.Id).GetEpicsAsync().ConfigureAwait(false)).Value, DateTimeOffset.Now.AddHours(1));
+            EpicList epicList = (await _zenHubClient.GetRepositoryClient(gitHubRepoObj.Id).GetEpicsAsync()).Value;
 
             List<IssueDescription> findResults = new List<IssueDescription>();
 
@@ -384,8 +387,22 @@ namespace IssueCreator
             {
                 long repoId = epic.RepositoryId;
                 int issueNumber = epic.IssueNumber;
-                // from the issue link, get the cached issue from the repo
-                IssueObject issue = await GetIssueAsync(repoId, issueNumber, IssueLoadScenario.LoadAllIssues);
+                IssueObject issue = null;
+                try
+                {
+                    // from the issue link, get the cached issue from the repo
+                    issue = await GetIssueAsync(repoId, issueNumber, IssueLoadScenario.LoadAllIssues);
+                }
+                catch
+                {
+                    continue;
+                }
+
+                // Closed issues are not interesting
+                if (issue.State == "closed")
+                {
+                    continue;
+                }
 
                 if (StringComparer.OrdinalIgnoreCase.Equals(title, issue.Title))
                 {
