@@ -17,7 +17,7 @@ jobs:
         nuget-version: latest
 
     - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.0.0
+      uses: microsoft/setup-msbuild@v1.0.2
 
     - name: Restore
       run: nuget restore ./src/IssueCreator.sln
