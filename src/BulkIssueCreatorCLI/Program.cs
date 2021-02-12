@@ -7,6 +7,7 @@ using IssueCreator.Models;
 using OutputColorizer;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -22,32 +23,68 @@ namespace BulkIssueCreatorCLI
         private static Arguments s_arguments;
         static void Main(string[] args)
         {
-            if (!Parser.TryParse<Arguments>(args, out s_arguments))
+            using (var fileLogger = new FileLogWriter("IssueCreator.log"))
             {
-                return;
+                Colorizer.SetupWriter(fileLogger);
+                if (!Parser.TryParse<Arguments>(args, out s_arguments))
+                {
+                    return;
+                }
+
+                s_logger = new FileLogger(Path.Combine(Settings.SettingsFolder, "bulkIssueCreatorCLI.log"));
+
+                if (s_arguments.Type == ActionType.createIssues)
+                {
+                    CreateIssuesActionAsync().GetAwaiter().GetResult();
+                }
+            }
+        }
+
+        private static async Task CreateIssuesActionAsync()
+        {
+            using (LoggingScope main = new LoggingScope("Create issues on GitHub"))
+
+            using (LoggingScope li = new LoggingScope("Loading settings..."))
+            {
+                using (IDisposable scope = s_logger.CreateScope("Loading settings"))
+                {
+                    s_settings.Initialize(Settings.Deserialize(Settings.SettingsFile, s_logger));
+
+                    s_issueManager = IssueManager.Create(s_settings, ".", s_logger);
+                }
             }
 
-            s_logger = new FileLogger(Path.Combine(Settings.SettingsFolder, "bulkIssueCreatorCLI.log"));
-
-            Colorizer.Write("Loading settings...");
-            using (IDisposable scope = s_logger.CreateScope("Loading settings"))
+            List<IssueToCreateWithEpic> parsedIssueData = null;
+            using (LoggingScope li = new LoggingScope("Processing input file [Yellow!{0}]", s_arguments.InputFile))
             {
-                s_settings.Initialize(Settings.Deserialize(Settings.SettingsFile, s_logger));
+                //Colorizer.WriteLine(, );
 
-                s_issueManager = IssueManager.Create(s_settings, ".", s_logger);
+                // Parse the issue data from the input file
+                parsedIssueData = ParseInputFile(new CsvConfiguration(CultureInfo.InvariantCulture, missingFieldFound: null));
             }
-            Colorizer.WriteLine("[Green!Done]!");
 
-            Colorizer.Write("Reading input file [Yellow!{0}]", s_arguments.InputFile);
+            using (LoggingScope li = new LoggingScope("Identifying issues with existing parent epics."))
+            {
+                IdentifyIssueDependencies(parsedIssueData);
+            }
 
-            CsvConfiguration cfg = new CsvConfiguration(CultureInfo.InvariantCulture, missingFieldFound: null);
-            List<IssueToCreateWithEpic> parsedIssueData = ParseInputFile(cfg);
+            using (LoggingScope li = new LoggingScope("Validate and set milestone data"))
+            {
+                // Validate the milestone data (and create the milestone objects as needed)
+                await ValidateAndSetMilestonesAsync(parsedIssueData).ConfigureAwait(false);
+            }
 
-            //ValidateAndSetMilestonesAsync(parsedIssueData).GetAwaiter().GetResult();
+            using (LoggingScope li = new LoggingScope("Determine order in which to create issues"))
+            {
+                // Sort the issues based on the parent Epic
+                parsedIssueData = SortIssuesByParent(parsedIssueData);
+            }
 
-            parsedIssueData = SortIssuesByParent(parsedIssueData);
-
-            //CreateIssuesAsync(parsedIssueData).GetAwaiter().GetResult();
+            using (LoggingScope li = new LoggingScope("Create issues on GitHub"))
+            {
+                // Create the issues on GitHub
+                await CreateIssuesAsync(parsedIssueData);
+            }
         }
 
         private static List<IssueToCreateWithEpic> SortIssuesByParent(List<IssueToCreateWithEpic> parsedIssueData)
@@ -61,6 +98,7 @@ namespace BulkIssueCreatorCLI
 
                 if (current.HasParent)
                 {
+                    Colorizer.WriteLine("Selecting [Yellow!{0}] as next to create", current.Title);
                     results.Enqueue(current);
 
                     // if this was a parent for any other issue, those issues can now be considered good to go
@@ -80,11 +118,6 @@ namespace BulkIssueCreatorCLI
                 }
             }
 
-            foreach (IssueToCreateWithEpic item in results)
-            {
-                Console.WriteLine(item.Title + "< " + item.EpicTitle);
-            }
-
             return results.ToList();
         }
 
@@ -96,26 +129,33 @@ namespace BulkIssueCreatorCLI
             // create all the issues, without being in an epic.
             foreach (IssueToCreateWithEpic issue in parsedIssueData)
             {
-                Console.WriteLine("Creating" + issue.Title);
-                if (!string.IsNullOrEmpty(issue.EpicTitle))
-                {
-                    issue.Epic = await GetEpicFromTitle(issue);
-                }
+                Colorizer.WriteLine("Creating [Yellow!{0}]", issue.Title);
+#if !DEBUG
+//                if (!string.IsNullOrEmpty(issue.EpicTitle))
+//                {
+//                    issue.Epic = await GetEpicFromTitle(issue);
+//                }
+//#endif
 
-                (bool result, string error) = await s_issueManager.TryCreateNewIssueAsync(issue, false);
+//                // Don't make live calls to the service
+//#if !DEBUG
+//                (bool result, string error) = await s_issueManager.TryCreateNewIssueAsync(issue, false);
+//                await Task.Delay(500);
 
-                if (result == false)
-                {
-                    throw new InvalidOperationException("Error creating epic");
-                }
+//                if (result == false)
+//                {
+//                    throw new InvalidOperationException("Error creating epic");
+//                }
+#endif
             }
         }
 
         private static async Task<IssueDescription> GetEpicFromTitle(IssueToCreateWithEpic issue)
         {
             List<IssueDescription> epics = await s_issueManager.GetEpicsWithTitleAsync(issue.EpicTitle, $"{issue.EpicOrg}\\{issue.EpicRepo}");
+            await Task.Delay(500);
 
-            Console.WriteLine("Using parent epic " + epics.FirstOrDefault().Issue.Title);
+            Colorizer.WriteLine("Found parent epic " + epics.FirstOrDefault().Issue.Title);
 
             return epics.FirstOrDefault();
         }
@@ -181,49 +221,111 @@ namespace BulkIssueCreatorCLI
                         issue.Labels = new List<string>(labels.Split(','));
                     }
 
+
+                    Colorizer.WriteLine("Found: {0}", issue.ToString());
+
                     issues.Add(issue);
                 }
 
-                // once we read the entries we can decide which ones require us to create issues vs the ones that we should expect already exist.
+                Colorizer.WriteLine("Found [Yellow!{0}] issues.", issues.Count);
 
-                foreach (IssueToCreateWithEpic issue in issues)
-                {
-                    // does the issue need a parent epic to be created?
-                    if (string.IsNullOrEmpty(issue.EpicTitle))
-                    {
-                        issue.HasParent = true;
-                        continue;
-                    }
-
-                    // check to see if the parent of this issue is in the list to be created.
-                    // if not, mark hasParent=true
-
-                    if (!issues.Where(entry => StringComparer.OrdinalIgnoreCase.Equals(entry.Title, issue.EpicTitle) &&
-                            StringComparer.OrdinalIgnoreCase.Equals(entry.Repository, issue.EpicRepo) &&
-                            StringComparer.OrdinalIgnoreCase.Equals(entry.Organization, issue.EpicOrg)).Any())
-                    {
-                        issue.HasParent = true;
-                    }
-                }
 
                 Colorizer.WriteLine("[Green!Done]!");
             }
             return issues;
         }
+
+        private static void IdentifyIssueDependencies(List<IssueToCreateWithEpic> issues)
+        {
+            // once we read the entries we can decide which ones require us to create issues vs the ones that we should expect already exist.
+
+            foreach (IssueToCreateWithEpic issue in issues)
+            {
+                // does the issue need a parent epic to be created?
+                if (string.IsNullOrEmpty(issue.EpicTitle))
+                {
+                    Colorizer.WriteLine("Marked issue [Yellow!{0}] as root (no dependencies).", issue.Title);
+                    issue.HasParent = true;
+                    continue;
+                }
+
+                // check to see if the parent of this issue is in the list to be created.
+                // if not, mark hasParent=true
+                if (!issues.Where(entry => StringComparer.OrdinalIgnoreCase.Equals(entry.Title, issue.EpicTitle) &&
+                        StringComparer.OrdinalIgnoreCase.Equals(entry.Repository, issue.EpicRepo) &&
+                        StringComparer.OrdinalIgnoreCase.Equals(entry.Organization, issue.EpicOrg)).Any())
+                {
+                    Colorizer.WriteLine("Marked issue [Yellow!{0}] as having no dependencies that need to be created in the list of issues.", issue.Title);
+                    issue.HasParent = true;
+                }
+            }
+        }
     }
 
-    class IssueToCreateWithEpic : IssueToCreate
+    public class LoggingScope : IDisposable
     {
-        public string EpicOrg { get; set; }
-        public string EpicRepo { get; set; }
-        public string EpicTitle { get; set; }
-        public string MilestoneText { get; set; }
+        private string _scopeName;
+        private object[] _arguments;
+        private Stopwatch _timer;
 
-        public bool HasParent { get; set; } = false;
-
-        public override string ToString()
+        public LoggingScope(string scopeName, params object[] arguments)
         {
-            return $"{Title} ({Repository})";
+            _scopeName = scopeName;
+            _arguments = arguments;
+
+            Colorizer.Write("[Magenta!Start] ");
+            Colorizer.WriteLine(scopeName, arguments);
+            _timer = new Stopwatch();
+            _timer.Start();
+        }
+
+
+        public void Dispose()
+        {
+            _timer.Stop();
+
+            Colorizer.Write("[Green!Done] ");
+            Colorizer.Write(_scopeName, _arguments);
+            Colorizer.WriteLine(" in [Cyan!{0}ms]", _timer.Elapsed.Milliseconds);
+        }
+    }
+
+    public class FileLogWriter : IOutputWriter, IDisposable
+    {
+        private string _fileName;
+        private StreamWriter _sw;
+        private ConsoleWriter _cw;
+        public FileLogWriter(string fileName)
+        {
+            _fileName = fileName;
+            _cw = new ConsoleWriter();
+            _cw.ForegroundColor = ConsoleColor.Gray;
+
+            _sw = new StreamWriter(_fileName, true);
+        }
+
+        public ConsoleColor ForegroundColor
+        {
+            get => _cw.ForegroundColor;
+            set => _cw.ForegroundColor = value;
+        }
+
+        public void Dispose()
+        {
+            _sw.Flush();
+            _sw.Dispose();
+        }
+
+        public void Write(string text)
+        {
+            _sw.Write(text);
+            _cw.Write(text);
+        }
+
+        public void WriteLine(string text)
+        {
+            _sw.WriteLine(text);
+            _cw.WriteLine(text);
         }
     }
 }
