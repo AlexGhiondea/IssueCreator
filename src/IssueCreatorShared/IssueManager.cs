@@ -311,7 +311,7 @@ namespace IssueCreator
                 Process.Start(createdIssue.HtmlUrl);
             }
 
-            return (true, string.Empty);
+            return (true, createdIssue.HtmlUrl);
         }
 
         public async Task<IssueObject> GetAllIssueAsync(long repoId, int issueNumber) => await GetIssueAsync(repoId, issueNumber, IssueLoadScenario.LoadAllIssues);

@@ -42,48 +42,66 @@ namespace BulkIssueCreatorCLI
 
         private static async Task CreateIssuesActionAsync()
         {
-            using (LoggingScope main = new LoggingScope("Create issues on GitHub"))
-
-            using (LoggingScope li = new LoggingScope("Loading settings..."))
+            using (LoggingScope main = new LoggingScope("Create issues in bulk on GitHub"))
             {
-                using (IDisposable scope = s_logger.CreateScope("Loading settings"))
+
+                using (LoggingScope li = new LoggingScope("Loading settings..."))
                 {
-                    s_settings.Initialize(Settings.Deserialize(Settings.SettingsFile, s_logger));
+                    using (IDisposable scope = s_logger.CreateScope("Loading settings"))
+                    {
+                        s_settings.Initialize(Settings.Deserialize(Settings.SettingsFile, s_logger));
 
-                    s_issueManager = IssueManager.Create(s_settings, ".", s_logger);
+                        s_issueManager = IssueManager.Create(s_settings, ".", s_logger);
+                    }
                 }
-            }
 
-            List<IssueToCreateWithEpic> parsedIssueData = null;
-            using (LoggingScope li = new LoggingScope("Processing input file [Yellow!{0}]", s_arguments.InputFile))
-            {
-                //Colorizer.WriteLine(, );
+                List<IssueToCreateWithEpic> issuesToCreate = null;
+                using (LoggingScope li = new LoggingScope("Processing input file [Yellow!{0}]", s_arguments.InputFile))
+                {
+                    //Colorizer.WriteLine(, );
 
-                // Parse the issue data from the input file
-                parsedIssueData = ParseInputFile(new CsvConfiguration(CultureInfo.InvariantCulture, missingFieldFound: null));
-            }
+                    // Parse the issue data from the input file
+                    issuesToCreate = ParseInputFile(new CsvConfiguration(CultureInfo.InvariantCulture, missingFieldFound: null));
+                }
 
-            using (LoggingScope li = new LoggingScope("Identifying issues with existing parent epics."))
-            {
-                IdentifyIssueDependencies(parsedIssueData);
-            }
+                using (LoggingScope li = new LoggingScope("Identifying issues with existing parent epics."))
+                {
+                    IdentifyIssueDependencies(issuesToCreate);
+                }
 
-            using (LoggingScope li = new LoggingScope("Validate and set milestone data"))
-            {
-                // Validate the milestone data (and create the milestone objects as needed)
-                await ValidateAndSetMilestonesAsync(parsedIssueData).ConfigureAwait(false);
-            }
+                using (LoggingScope li = new LoggingScope("Validate and set milestone data"))
+                {
+                    // Validate the milestone data (and create the milestone objects as needed)
+                    await ValidateAndSetMilestonesAsync(issuesToCreate).ConfigureAwait(false);
+                }
 
-            using (LoggingScope li = new LoggingScope("Determine order in which to create issues"))
-            {
-                // Sort the issues based on the parent Epic
-                parsedIssueData = SortIssuesByParent(parsedIssueData);
-            }
+                using (LoggingScope li = new LoggingScope("Determine order in which to create issues"))
+                {
+                    // Sort the issues based on the parent Epic
+                    issuesToCreate = SortIssuesByParent(issuesToCreate);
+                }
 
-            using (LoggingScope li = new LoggingScope("Create issues on GitHub"))
-            {
-                // Create the issues on GitHub
-                await CreateIssuesAsync(parsedIssueData);
+                // Display all the information about the issues and prompt before creating
+
+                foreach (IssueToCreateWithEpic issue in issuesToCreate)
+                {
+                    Colorizer.WriteLine($"[Cyan!{issue.Repository}]/[Yellow!{issue.Title}] Assigned:[White!{issue.AssignedTo}], Labels:[DarkGreen!{string.Join(',', issue.Labels)}], Milestone:[Yellow!{issue.Milestone}] {Environment.NewLine}  > Parent:[Cyan!{issue.EpicRepo}]/[Yellow!{issue.EpicTitle}]");
+                }
+
+                Colorizer.WriteLine("Proceed? [Green!y]/[Red!n]");
+                if (Console.ReadKey().Key != ConsoleKey.Y)
+                {
+                    Colorizer.WriteLine("[Red!Nothing changed]");
+                    return;
+                }
+                else
+                {
+                    using (LoggingScope li = new LoggingScope("Create issues on GitHub"))
+                    {
+                        // Create the issues on GitHub
+                        await CreateIssuesAsync(issuesToCreate);
+                    }
+                }
             }
         }
 
@@ -129,24 +147,27 @@ namespace BulkIssueCreatorCLI
             // create all the issues, without being in an epic.
             foreach (IssueToCreateWithEpic issue in parsedIssueData)
             {
-                Colorizer.WriteLine("Creating [Yellow!{0}]", issue.Title);
-#if !DEBUG
-//                if (!string.IsNullOrEmpty(issue.EpicTitle))
-//                {
-//                    issue.Epic = await GetEpicFromTitle(issue);
-//                }
-//#endif
+                using (LoggingScope ls = new LoggingScope("Creating [Yellow!{0}]", issue.Title))
+                {
 
-//                // Don't make live calls to the service
-//#if !DEBUG
-//                (bool result, string error) = await s_issueManager.TryCreateNewIssueAsync(issue, false);
-//                await Task.Delay(500);
+                    if (!string.IsNullOrEmpty(issue.EpicTitle))
+                    {
+                        issue.Epic = await GetEpicFromTitle(issue);
+                    }
 
-//                if (result == false)
-//                {
-//                    throw new InvalidOperationException("Error creating epic");
-//                }
-#endif
+                    (bool issueCreated, string errorOrUrl) = await s_issueManager.TryCreateNewIssueAsync(issue, false);
+
+                    if (issueCreated == true)
+                    {
+                        Colorizer.WriteLine("Issue [Yellow!{0}] created with url [Cyan!{1}]", issue.Title, errorOrUrl);
+                    }
+                    else
+                    {
+                        Colorizer.WriteLine("[Red!Error]: Could not create issue [Yellow!{0}]. [Red!Stopping]", issue.Title);
+                        break;
+                    }
+                    await Task.Delay(500);
+                }
             }
         }
 
