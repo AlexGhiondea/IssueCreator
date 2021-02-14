@@ -144,12 +144,18 @@ namespace BulkIssueCreatorCLI
             // The issues are sorted such that no epic shows up before its parent epic.
             // this means I should be able to get the parent epic all the time.
 
+            int issuesCreated = parsedIssueData.Count;
             // create all the issues, without being in an epic.
             foreach (IssueToCreateWithEpic issue in parsedIssueData)
             {
+                Colorizer.WriteLine("Create [Yellow!{0}]? [Green!y]/[Red!/n]", issue.Title);
+                if (Console.ReadKey().Key != ConsoleKey.Y)
+                {
+                    continue;
+                }
+
                 using (LoggingScope ls = new LoggingScope("Creating [Yellow!{0}]", issue.Title))
                 {
-
                     if (!string.IsNullOrEmpty(issue.EpicTitle))
                     {
                         issue.Epic = await GetEpicFromTitle(issue);
@@ -164,7 +170,7 @@ namespace BulkIssueCreatorCLI
                     else
                     {
                         Colorizer.WriteLine("[Red!Error]: Could not create issue [Yellow!{0}]. [Red!Stopping]", issue.Title);
-                        break;
+                        //break;
                     }
                     await Task.Delay(500);
                 }
@@ -176,7 +182,7 @@ namespace BulkIssueCreatorCLI
             List<IssueDescription> epics = await s_issueManager.GetEpicsWithTitleAsync(issue.EpicTitle, $"{issue.EpicOrg}\\{issue.EpicRepo}");
             await Task.Delay(500);
 
-            Colorizer.WriteLine("Found parent epic " + epics.FirstOrDefault().Issue.Title);
+            Colorizer.WriteLine("Found parent epic [Cyan!{0}].", epics.FirstOrDefault().Issue.Title);
 
             return epics.FirstOrDefault();
         }
