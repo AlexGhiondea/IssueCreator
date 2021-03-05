@@ -357,9 +357,18 @@ namespace IssueCreator
                         long repoId = epic.RepositoryId;
                         int issueNumber = epic.IssueNumber;
                         // from the issue link, get the cached issue from the repo
-                        IssueObject issue = await GetIssueAsync(repoId, issueNumber, IssueLoadScenario.LoadAllIssues);
 
-                        result.Add(new IssueDescription() { Issue = issue, Repo = gitHubRepoObj });
+                        try
+                        {
+                            IssueObject issue = await GetIssueAsync(repoId, issueNumber, IssueLoadScenario.LoadAllIssues);
+
+
+                            result.Add(new IssueDescription() { Issue = issue, Repo = gitHubRepoObj });
+                        }
+                        catch (Exception ex)
+                        {
+                            _fileLogger.Log(string.Format("Error retrieving issue: {0}", ex));
+                        }
                     }
                 });
             }
@@ -463,10 +472,17 @@ namespace IssueCreator
                     string key = Path.GetFileNameWithoutExtension(file);
                     Type cacheType = StringTemplate.GetType(key);
 
-                    object deserializedObject = JsonSerializer.Deserialize(sr.ReadToEnd(), cacheType);
+                    try
+                    {
+                        object deserializedObject = JsonSerializer.Deserialize(sr.ReadToEnd(), cacheType);
 
-                    _cache.Set(key, deserializedObject, DateTimeOffset.Now.AddMinutes(10));
-                    deserializedData = true;
+                        _cache.Set(key, deserializedObject, DateTimeOffset.Now.AddMinutes(10));
+                        deserializedData = true;
+                    }
+                    catch
+                    {
+                        _fileLogger.Log(string.Format("Cannot deserialize data from file {0}", file));
+                    }
                 }
             }
 
