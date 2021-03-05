@@ -7,7 +7,6 @@ using IssueCreator.Models;
 using OutputColorizer;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -23,84 +22,78 @@ namespace BulkIssueCreatorCLI
         private static Arguments s_arguments;
         static void Main(string[] args)
         {
-            using (var fileLogger = new FileLogWriter("IssueCreator.log"))
+            using FileLogWriter fileLogger = new FileLogWriter("IssueCreator.log");
+            Colorizer.SetupWriter(fileLogger);
+            if (!Parser.TryParse<Arguments>(args, out s_arguments))
             {
-                Colorizer.SetupWriter(fileLogger);
-                if (!Parser.TryParse<Arguments>(args, out s_arguments))
-                {
-                    return;
-                }
+                return;
+            }
 
-                s_logger = new FileLogger(Path.Combine(Settings.SettingsFolder, "bulkIssueCreatorCLI.log"));
+            s_logger = new FileLogger(Path.Combine(Settings.SettingsFolder, "bulkIssueCreatorCLI.log"));
 
-                if (s_arguments.Type == ActionType.createIssues)
-                {
-                    CreateIssuesActionAsync().GetAwaiter().GetResult();
-                }
+            if (s_arguments.Type == ActionType.createIssues)
+            {
+                CreateIssuesActionAsync().GetAwaiter().GetResult();
             }
         }
 
         private static async Task CreateIssuesActionAsync()
         {
-            using (LoggingScope main = new LoggingScope("Create issues in bulk on GitHub"))
+            using LoggingScope main = new LoggingScope("Create issues in bulk on GitHub");
+
+            using (LoggingScope li = new LoggingScope("Loading settings..."))
             {
-
-                using (LoggingScope li = new LoggingScope("Loading settings..."))
+                using (IDisposable scope = s_logger.CreateScope("Loading settings"))
                 {
-                    using (IDisposable scope = s_logger.CreateScope("Loading settings"))
-                    {
-                        s_settings.Initialize(Settings.Deserialize(Settings.SettingsFile, s_logger));
+                    s_settings.Initialize(Settings.Deserialize(Settings.SettingsFile, s_logger));
 
-                        s_issueManager = IssueManager.Create(s_settings, ".", s_logger);
-                    }
+                    s_issueManager = IssueManager.Create(s_settings, ".", s_logger);
                 }
+            }
 
-                List<IssueToCreateWithEpic> issuesToCreate = null;
-                using (LoggingScope li = new LoggingScope("Processing input file [Yellow!{0}]", s_arguments.InputFile))
+            List<IssueToCreateWithEpic> issuesToCreate = null;
+            using (LoggingScope li = new LoggingScope("Processing input file [Yellow!{0}]", s_arguments.InputFile))
+            {
+                // Parse the issue data from the input file
+                issuesToCreate = ParseInputFile(new CsvConfiguration(CultureInfo.InvariantCulture, missingFieldFound: null));
+            }
+
+            using (LoggingScope li = new LoggingScope("Identifying issues with existing parent epics."))
+            {
+                IdentifyIssueDependencies(issuesToCreate);
+            }
+
+            using (LoggingScope li = new LoggingScope("Validate and set milestone data"))
+            {
+                // Validate the milestone data (and create the milestone objects as needed)
+                await ValidateAndSetMilestonesAsync(issuesToCreate).ConfigureAwait(false);
+            }
+
+            using (LoggingScope li = new LoggingScope("Determine order in which to create issues"))
+            {
+                // Sort the issues based on the parent Epic
+                issuesToCreate = SortIssuesByParent(issuesToCreate);
+            }
+
+            // Display all the information about the issues and prompt before creating
+
+            foreach (IssueToCreateWithEpic issue in issuesToCreate)
+            {
+                Colorizer.WriteLine($"[Cyan!{issue.Repository}]/[Yellow!{issue.Title}] Assigned:[White!{issue.AssignedTo}], Labels:[DarkGreen!{string.Join(',', issue.Labels)}], Milestone:[Yellow!{issue.Milestone}] {Environment.NewLine}  > Parent:[Cyan!{issue.EpicRepo}]/[Yellow!{issue.EpicTitle}]");
+            }
+
+            Colorizer.WriteLine("Proceed? [Green!y]/[Red!n]");
+            if (Console.ReadKey().Key != ConsoleKey.Y)
+            {
+                Colorizer.WriteLine("[Red!Nothing changed]");
+                return;
+            }
+            else
+            {
+                using (LoggingScope li = new LoggingScope("Create issues on GitHub"))
                 {
-                    //Colorizer.WriteLine(, );
-
-                    // Parse the issue data from the input file
-                    issuesToCreate = ParseInputFile(new CsvConfiguration(CultureInfo.InvariantCulture, missingFieldFound: null));
-                }
-
-                using (LoggingScope li = new LoggingScope("Identifying issues with existing parent epics."))
-                {
-                    IdentifyIssueDependencies(issuesToCreate);
-                }
-
-                using (LoggingScope li = new LoggingScope("Validate and set milestone data"))
-                {
-                    // Validate the milestone data (and create the milestone objects as needed)
-                    await ValidateAndSetMilestonesAsync(issuesToCreate).ConfigureAwait(false);
-                }
-
-                using (LoggingScope li = new LoggingScope("Determine order in which to create issues"))
-                {
-                    // Sort the issues based on the parent Epic
-                    issuesToCreate = SortIssuesByParent(issuesToCreate);
-                }
-
-                // Display all the information about the issues and prompt before creating
-
-                foreach (IssueToCreateWithEpic issue in issuesToCreate)
-                {
-                    Colorizer.WriteLine($"[Cyan!{issue.Repository}]/[Yellow!{issue.Title}] Assigned:[White!{issue.AssignedTo}], Labels:[DarkGreen!{string.Join(',', issue.Labels)}], Milestone:[Yellow!{issue.Milestone}] {Environment.NewLine}  > Parent:[Cyan!{issue.EpicRepo}]/[Yellow!{issue.EpicTitle}]");
-                }
-
-                Colorizer.WriteLine("Proceed? [Green!y]/[Red!n]");
-                if (Console.ReadKey().Key != ConsoleKey.Y)
-                {
-                    Colorizer.WriteLine("[Red!Nothing changed]");
-                    return;
-                }
-                else
-                {
-                    using (LoggingScope li = new LoggingScope("Create issues on GitHub"))
-                    {
-                        // Create the issues on GitHub
-                        await CreateIssuesAsync(issuesToCreate);
-                    }
+                    // Create the issues on GitHub
+                    await CreateIssuesAsync(issuesToCreate);
                 }
             }
         }
@@ -170,7 +163,6 @@ namespace BulkIssueCreatorCLI
                     else
                     {
                         Colorizer.WriteLine("[Red!Error]: Could not create issue [Yellow!{0}]. [Red!Stopping]", issue.Title);
-                        //break;
                     }
                     await Task.Delay(500);
                 }
@@ -192,7 +184,6 @@ namespace BulkIssueCreatorCLI
             foreach (IssueToCreateWithEpic issue in parsedIssueData)
             {
                 // get the milestone
-
                 if (string.IsNullOrEmpty(issue.MilestoneText))
                 {
                     continue;
@@ -286,73 +277,6 @@ namespace BulkIssueCreatorCLI
                     issue.HasParent = true;
                 }
             }
-        }
-    }
-
-    public class LoggingScope : IDisposable
-    {
-        private string _scopeName;
-        private object[] _arguments;
-        private Stopwatch _timer;
-
-        public LoggingScope(string scopeName, params object[] arguments)
-        {
-            _scopeName = scopeName;
-            _arguments = arguments;
-
-            Colorizer.Write("[Magenta!Start] ");
-            Colorizer.WriteLine(scopeName, arguments);
-            _timer = new Stopwatch();
-            _timer.Start();
-        }
-
-
-        public void Dispose()
-        {
-            _timer.Stop();
-
-            Colorizer.Write("[Green!Done] ");
-            Colorizer.Write(_scopeName, _arguments);
-            Colorizer.WriteLine(" in [Cyan!{0}ms]", _timer.Elapsed.Milliseconds);
-        }
-    }
-
-    public class FileLogWriter : IOutputWriter, IDisposable
-    {
-        private string _fileName;
-        private StreamWriter _sw;
-        private ConsoleWriter _cw;
-        public FileLogWriter(string fileName)
-        {
-            _fileName = fileName;
-            _cw = new ConsoleWriter();
-            _cw.ForegroundColor = ConsoleColor.Gray;
-
-            _sw = new StreamWriter(_fileName, true);
-        }
-
-        public ConsoleColor ForegroundColor
-        {
-            get => _cw.ForegroundColor;
-            set => _cw.ForegroundColor = value;
-        }
-
-        public void Dispose()
-        {
-            _sw.Flush();
-            _sw.Dispose();
-        }
-
-        public void Write(string text)
-        {
-            _sw.Write(text);
-            _cw.Write(text);
-        }
-
-        public void WriteLine(string text)
-        {
-            _sw.WriteLine(text);
-            _cw.WriteLine(text);
         }
     }
 }
