@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace BulkIssueCreatorCLI
@@ -51,28 +52,45 @@ namespace BulkIssueCreatorCLI
                 }
             }
 
+            string progressFile = new FileInfo("progress.dat").FullName;
+
             List<IssueToCreateWithEpic> issuesToCreate = null;
-            using (LoggingScope li = new LoggingScope("Processing input file [Yellow!{0}]", s_arguments.InputFile))
+            // Do we have a progress file?
+            if (File.Exists(progressFile))
             {
-                // Parse the issue data from the input file
-                issuesToCreate = ParseInputFile(new CsvConfiguration(CultureInfo.InvariantCulture, missingFieldFound: null));
+                Colorizer.WriteLine("Found progress file [Yellow!{0}]. Do you want to use it[Green!y]/[Red!n]", progressFile);
+                if (Console.ReadKey().Key == ConsoleKey.Y)
+                {
+                    // load the data from file.
+                    issuesToCreate = LoadIssuesFromProgressFile(progressFile);
+                }
             }
 
-            using (LoggingScope li = new LoggingScope("Identifying issues with existing parent epics."))
+            if (issuesToCreate == null)
             {
-                IdentifyIssueDependencies(issuesToCreate);
-            }
+                // if we did not load any issues from the progress file
+                using (LoggingScope li = new LoggingScope("Processing input file [Yellow!{0}]", s_arguments.InputFile))
+                {
+                    // Parse the issue data from the input file
+                    issuesToCreate = ParseInputFile(new CsvConfiguration(CultureInfo.InvariantCulture, missingFieldFound: null));
+                }
 
-            using (LoggingScope li = new LoggingScope("Validate and set milestone data"))
-            {
-                // Validate the milestone data (and create the milestone objects as needed)
-                await ValidateAndSetMilestonesAsync(issuesToCreate).ConfigureAwait(false);
-            }
+                using (LoggingScope li = new LoggingScope("Identifying issues with existing parent epics."))
+                {
+                    IdentifyIssueDependencies(issuesToCreate);
+                }
 
-            using (LoggingScope li = new LoggingScope("Determine order in which to create issues"))
-            {
-                // Sort the issues based on the parent Epic
-                issuesToCreate = SortIssuesByParent(issuesToCreate);
+                using (LoggingScope li = new LoggingScope("Validate and set milestone data"))
+                {
+                    // Validate the milestone data (and create the milestone objects as needed)
+                    await ValidateAndSetMilestonesAsync(issuesToCreate).ConfigureAwait(false);
+                }
+
+                using (LoggingScope li = new LoggingScope("Determine order in which to create issues"))
+                {
+                    // Sort the issues based on the parent Epic
+                    issuesToCreate = SortIssuesByParent(issuesToCreate);
+                }
             }
 
             // Display all the information about the issues and prompt before creating
@@ -92,10 +110,25 @@ namespace BulkIssueCreatorCLI
             {
                 using (LoggingScope li = new LoggingScope("Create issues on GitHub"))
                 {
+                    //save the current version of the issuesToCreate list to disk
+                    SaveIssuesToProgressFile(progressFile, issuesToCreate);
+
                     // Create the issues on GitHub
-                    await CreateIssuesAsync(issuesToCreate);
+                    await CreateIssuesAsync(issuesToCreate, progressFile);
                 }
             }
+        }
+
+        private static void SaveIssuesToProgressFile(string progressFile, List<IssueToCreateWithEpic> issues)
+        {
+            string text = JsonSerializer.Serialize(issues);
+            File.WriteAllText(progressFile, text);
+        }
+
+        private static List<IssueToCreateWithEpic> LoadIssuesFromProgressFile(string progressFile)
+        {
+            string text = File.ReadAllText(progressFile);
+            return JsonSerializer.Deserialize<List<IssueToCreateWithEpic>>(text);
         }
 
         private static List<IssueToCreateWithEpic> SortIssuesByParent(List<IssueToCreateWithEpic> parsedIssueData)
@@ -132,18 +165,24 @@ namespace BulkIssueCreatorCLI
             return results.ToList();
         }
 
-        private static async Task CreateIssuesAsync(List<IssueToCreateWithEpic> parsedIssueData)
+        private static async Task CreateIssuesAsync(List<IssueToCreateWithEpic> parsedIssueData, string progressFile)
         {
             // The issues are sorted such that no epic shows up before its parent epic.
             // this means I should be able to get the parent epic all the time.
 
             int issuesCreated = parsedIssueData.Count;
-            // create all the issues, without being in an epic.
-            foreach (IssueToCreateWithEpic issue in parsedIssueData)
+
+            while (parsedIssueData.Count > 0)
             {
-                Colorizer.WriteLine("Create [Yellow!{0}]? [Green!y]/[Red!/n]", issue.Title);
+                // Get the epic at the front
+                IssueToCreateWithEpic issue = parsedIssueData[0];
+
+                Colorizer.WriteLine("Create [Yellow!{0}]? [Green!y]/[Red!n]", issue.Title);
                 if (Console.ReadKey().Key != ConsoleKey.Y)
                 {
+                    // remove the issue from the list
+                    parsedIssueData.Remove(issue);
+                    SaveIssuesToProgressFile(progressFile, parsedIssueData);
                     continue;
                 }
 
@@ -159,6 +198,8 @@ namespace BulkIssueCreatorCLI
                     if (issueCreated == true)
                     {
                         Colorizer.WriteLine("Issue [Yellow!{0}] created with url [Cyan!{1}]", issue.Title, errorOrUrl);
+                        parsedIssueData.Remove(issue);
+                        SaveIssuesToProgressFile(progressFile, parsedIssueData);
                     }
                     else
                     {
@@ -166,7 +207,39 @@ namespace BulkIssueCreatorCLI
                     }
                     await Task.Delay(500);
                 }
+
+
             }
+
+            //// create all the issues, without being in an epic.
+            //foreach (IssueToCreateWithEpic issue in parsedIssueData)
+            //{
+            //    Colorizer.WriteLine("Create [Yellow!{0}]? [Green!y]/[Red!n]", issue.Title);
+            //    if (Console.ReadKey().Key != ConsoleKey.Y)
+            //    {
+            //        continue;
+            //    }
+
+            //    using (LoggingScope ls = new LoggingScope("Creating [Yellow!{0}]", issue.Title))
+            //    {
+            //        if (!string.IsNullOrEmpty(issue.EpicTitle))
+            //        {
+            //            issue.Epic = await GetEpicFromTitle(issue);
+            //        }
+
+            //        (bool issueCreated, string errorOrUrl) = await s_issueManager.TryCreateNewIssueAsync(issue, false);
+
+            //        if (issueCreated == true)
+            //        {
+            //            Colorizer.WriteLine("Issue [Yellow!{0}] created with url [Cyan!{1}]", issue.Title, errorOrUrl);
+            //        }
+            //        else
+            //        {
+            //            Colorizer.WriteLine("[Red!Error]: Could not create issue [Yellow!{0}]. [Red!Stopping]", issue.Title);
+            //        }
+            //        await Task.Delay(500);
+            //    }
+            //}
         }
 
         private static async Task<IssueDescription> GetEpicFromTitle(IssueToCreateWithEpic issue)
