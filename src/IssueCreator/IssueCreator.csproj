@@ -30,7 +30,7 @@
     <PublisherName>Alex Ghiondea</PublisherName>
     <WebPage>publish.htm</WebPage>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>17</ApplicationRevision>
+    <ApplicationRevision>18</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -128,6 +128,9 @@
       <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.7.1\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
     <Reference Include="System.Security" />
+    <Reference Include="System.Security.Cryptography.ProtectedData, Version=4.0.5.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.ProtectedData.4.7.0\lib\net461\System.Security.Cryptography.ProtectedData.dll</HintPath>
+    </Reference>
     <Reference Include="System.Text.Encodings.Web, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Text.Encodings.Web.4.7.1\lib\net461\System.Text.Encodings.Web.dll</HintPath>
     </Reference>
@@ -216,26 +219,14 @@
       <DependentUpon>TextInput.cs</DependentUpon>
     </Compile>
     <Compile Include="Helpers\UIHelpers.cs" />
-    <Compile Include="IssueLoadScenario.cs" />
-    <Compile Include="Logging\FileLogger.cs" />
-    <Compile Include="Logging\LogScope.cs" />
-    <Compile Include="Models\Contributor.cs" />
-    <Compile Include="Models\IssueObject.cs" />
-    <Compile Include="Models\IssueToCreate.cs" />
-    <Compile Include="Models\IssueDescription.cs" />
-    <Compile Include="IssueManager.cs" />
     <Compile Include="Main.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Main.designer.cs">
       <DependentUpon>Main.cs</DependentUpon>
     </Compile>
-    <Compile Include="Models\IssueMilestone.cs" />
-    <Compile Include="Models\RepoLabel.cs" />
-    <Compile Include="Models\RepositoryInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Settings.cs" />
     <EmbeddedResource Include="Dialogs\BulkCreateIssues.resx">
       <DependentUpon>BulkCreateIssues.cs</DependentUpon>
     </EmbeddedResource>
@@ -300,6 +291,12 @@
   <ItemGroup>
     <Content Include="app.ico" />
     <Content Include="Properties\app.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\IssueCreatorShared\IssueCreatorShared.csproj">
+      <Project>{8c7f4474-a981-4bce-80f4-5faeb9f1d0f0}</Project>
+      <Name>IssueCreatorShared</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

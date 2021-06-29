@@ -12,6 +12,9 @@ namespace IssueCreator
 {
     public class Settings : INotifyPropertyChanged
     {
+        public static string SettingsFolder { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "IssueCreator");
+        public static string SettingsFile { get; } = Path.Combine(SettingsFolder, "issueCreator.settings");
+
         private static readonly byte[] s_entropy = { 23, 61, 24, 8, 77, 52 }; //the entropy
         private List<string> repositories = new List<string>();
         private string selectedRepository = string.Empty;
@@ -50,12 +53,11 @@ namespace IssueCreator
         public void Serialize(string file, FileLogger log)
         {
             using IDisposable scope = log.CreateScope("Serializing settings file");
-            using (StreamWriter sw = new StreamWriter(file))
-            {
-                Settings encrypted = EncryptSettings(this);
-                string jsonObject = JsonSerializer.Serialize(encrypted);
-                sw.Write(jsonObject);
-            }
+            using StreamWriter sw = new StreamWriter(file);
+
+            Settings encrypted = EncryptSettings(this);
+            string jsonObject = JsonSerializer.Serialize(encrypted);
+            sw.Write(jsonObject);
         }
 
         private static Settings DecryptSettings(Settings input)
@@ -88,10 +90,8 @@ namespace IssueCreator
 
             try
             {
-                using (StreamReader sr = new StreamReader(file))
-                {
-                    return DecryptSettings(JsonSerializer.Deserialize<Settings>(sr.ReadToEnd()));
-                }
+                using StreamReader sr = new StreamReader(file);
+                return DecryptSettings(JsonSerializer.Deserialize<Settings>(sr.ReadToEnd()));
             }
             catch (Exception ex)
             {
@@ -148,12 +148,9 @@ namespace IssueCreator
             DefaultLabels = new List<string>(settings.DefaultLabels);
         }
 
-        private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
         {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
