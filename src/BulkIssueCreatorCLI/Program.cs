@@ -244,6 +244,7 @@ namespace BulkIssueCreatorCLI
 
         private static async Task<IssueDescription> GetEpicFromTitle(IssueToCreateWithEpic issue)
         {
+            Colorizer.WriteLine($"Looking up parent epic: {issue.EpicTitle}");
             List<IssueDescription> epics = await s_issueManager.GetEpicsWithTitleAsync(issue.EpicTitle, $"{issue.EpicOrg}\\{issue.EpicRepo}");
             await Task.Delay(500);
 
